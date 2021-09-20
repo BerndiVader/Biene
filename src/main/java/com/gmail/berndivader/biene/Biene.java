@@ -19,6 +19,7 @@ Biene
 	public static boolean strict;
 	
 	public static Batcher batcher;
+	public static Headless headless;
 	
 	public static void main(String[] args) {
 		strict=false;
@@ -47,6 +48,8 @@ Biene
 					Main.init();
 				}
 			});
+		} else {
+			headless=new Headless();
 		}
 		
 		config=new Config();
