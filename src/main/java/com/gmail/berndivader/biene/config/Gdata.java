@@ -195,14 +195,10 @@ Cloneable
 	}
 	
 	private static String encode(String value) {
-		String string="";
-		string=Utils.encrypt(value);
-		return string;
+		return Utils.encrypt(value);
 	}
 	private static String decode(String value) {
-		String string="";
-		string=Utils.decrypt(value);
-		return string;
+		return Utils.decrypt(value);
 	}
 	
 }

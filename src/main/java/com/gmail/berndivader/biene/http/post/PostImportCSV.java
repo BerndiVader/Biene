@@ -47,7 +47,9 @@ PostTask
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
 			Logger.$("CSV-Import von "+result.get("FILE_NAME")+" "+result.get("MESSAGE"),false,true);
-			if(!result.get("MESSAGE").equals("OK")) {
+			if(result.get("MESSAGE")==null||!result.get("MESSAGE").equals("OK")) {
+				Logger.$("CSV-Import hat mit einem Fehler geantwortet.",false,true);
+				Utils.printOut("", xml.getChildNodes());
 				_failed(response);
 			}
 		} else {
