@@ -8,28 +8,20 @@ repositories {
 }
 
 configurations {
-    includeLibs
+    included
+    compile.extendsFrom(included)
 }
 
 dependencies {
-    includeLibs 'org.apache.httpcomponents:httpclient:4.5.13'
-    includeLibs 'org.apache.httpcomponents:httpmime:4.5.13'
-    includeLibs 'org.apache.httpcomponents:httpclient-cache:4.5.13'
-    includeLibs 'org.apache.httpcomponents:httpasyncclient:4.1.4'
-    includeLibs 'org.apache.httpcomponents:httpasyncclient-cache:4.1.4'
-    includeLibs 'org.apache.httpcomponents:httpcore:4.4.14'
-    includeLibs 'org.apache.httpcomponents:httpcore-nio:4.4.14'
-    includeLibs 'com.google.code.gson:gson:2.8.6'
-    includeLibs 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
-    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
-    implementation 'org.apache.httpcomponents:httpmime:4.5.13'
-    implementation 'org.apache.httpcomponents:httpclient-cache:4.5.13'
-    implementation 'org.apache.httpcomponents:httpasyncclient:4.1.4'
-    implementation 'org.apache.httpcomponents:httpasyncclient-cache:4.1.4'
-    implementation 'org.apache.httpcomponents:httpcore:4.4.14'
-    implementation 'org.apache.httpcomponents:httpcore-nio:4.4.14'
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'com.microsoft.sqlserver:mssql-jdbc:8.4.1.jre8'
+    included 'org.apache.httpcomponents:httpclient:4.5.13'
+    included 'org.apache.httpcomponents:httpmime:4.5.13'
+    included 'org.apache.httpcomponents:httpclient-cache:4.5.13'
+    included 'org.apache.httpcomponents:httpasyncclient:4.1.4'
+    included 'org.apache.httpcomponents:httpasyncclient-cache:4.1.4'
+    included 'org.apache.httpcomponents:httpcore:4.4.14'
+    included 'org.apache.httpcomponents:httpcore-nio:4.4.14'
+    included 'com.google.code.gson:gson:2.8.6'
+    included 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
 }
 
 jar {
@@ -41,6 +33,6 @@ jar {
     }
 
     from {
-        configurations.includeLibs.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.included.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
