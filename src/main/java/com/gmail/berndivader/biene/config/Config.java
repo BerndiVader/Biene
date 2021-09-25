@@ -50,7 +50,7 @@ Config
 	private static void get_version() {
 		String parse=inputstream_to_string(Biene.class.getResourceAsStream("/version.info"));
 		if(parse!=null) version=Integer.parseInt(parse);
-		Logger.$("Biene 2 - Version: "+version,false);
+		Logger.$("Biene "+Biene.BUILD+" - Config: "+version,false);
 	}
 	
 	public static boolean load_config() {
