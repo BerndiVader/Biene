@@ -12,6 +12,7 @@ public
 class 
 Biene 
 {
+	public static final String BUILD = "20210925";
 	public static boolean take_time=false;
 	public static boolean no_gui=false;
 	
@@ -26,7 +27,7 @@ Biene
 		try {
 			if(Utils.checkForInstance()) System.exit(0);
 		} catch (IOException e) {
-			Logger.$(e,false,true);
+			Logger.$(e,false,false);
 			e.printStackTrace();
 			System.exit(0);
 		}
@@ -48,16 +49,31 @@ Biene
 					Main.init();
 				}
 			});
+			
+			config=new Config();
+			
+			batcher=new Batcher();
+			batcher.start();
+			
+			Helper.init();
+			Utils.init();
+			
 		} else {
+			
+			config=new Config();
+			
+			batcher=new Batcher();
+			batcher.start();
+			
+			Helper.init();
+			Utils.init();
+			
 			headless=new Headless();
+			
 		}
 		
-		config=new Config();
 		
-		batcher=new Batcher();
-		batcher.start();
 		
-		Helper.init();
-		Utils.init();
+		
 	}	
 }
