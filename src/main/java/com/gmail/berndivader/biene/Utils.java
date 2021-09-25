@@ -213,30 +213,34 @@ Utils
 		String tmp;
 		String delimiter="|";
 		String action=action_enum.value();
-		String line="XTSOL"+delimiter+action+delimiter;
+		StringBuilder line=new StringBuilder("XTSOL"+delimiter+action+delimiter);
 
 		try {
 			//p_model
-			if((tmp=result.getString("c002"))==null) tmp="";
-			line+=result.getString("c002")+delimiter;
+			line.append(result.getString("c002"));
+			line.append(delimiter);
 			//p_stock
-			line+=Integer.toString(result.getInt("c008")-result.getInt("c009"))+delimiter;
+			line.append(Integer.toString(result.getInt("c008")-result.getInt("c009")));
+			line.append(delimiter);
 			//p_sorting
-			line+=delimiter;
+			line.append(delimiter);
 			//p_shipping
-			line+=(action_enum==Action.INSERT?"1":"")+delimiter;
+			line.append(action_enum==Action.INSERT?"1":"");
+			line.append(delimiter);
 			//p_tpl
-			line+=delimiter;
+			line.append(delimiter);
 			//p_manufacturer
-			line+=delimiter;
+			line.append(delimiter);
 			//p_fsk18
-			line+=(result.getInt("Expr1")==40?"1":"0")+delimiter;
+			line.append(result.getInt("Expr1")==40?"1":"0");
+			line.append(delimiter);
 			//p_priceNoTax
-			line+=format.format(result.getFloat("c007"))+delimiter;
+			line.append(format.format(result.getFloat("c007")));
+			line.append(delimiter);
 	        //p_priceNoTax 1-6
-	        line+="||||||";
+			line.append("||||||");
 	        //p_groupAcc 0-6
-	        line+="1|1|1|1|1|1|1|";
+			line.append("1|1|1|1|1|1|1|");
 	        //p_tax
 	        int tax=result.getInt("c030");
 	        if(tax==1) {
@@ -259,86 +263,98 @@ Utils
 				}
 	        }
 	        
-	        line+=(Integer.toString(tax))+delimiter;
+	        line.append(Integer.toString(tax));
+			line.append(delimiter);
 	        //p_status
-	        line+=(action_enum==Action.INSERT?"1":"")+delimiter;
+			line.append(action_enum==Action.INSERT?"1":"");
+			line.append(delimiter);
 	        //p_weight
-	        line+=format.format(result.getFloat("c063"))+delimiter;
+			line.append(format.format(result.getFloat("c063")));
+			line.append(delimiter);
 	        //p_ean
 			if((tmp=result.getString("c075"))==null) tmp="";
-	        line+=tmp+delimiter;
+	        line.append(tmp);
+			line.append(delimiter);
 	        //p_disc
-	        line+="0.00"+delimiter;
+			line.append("0.00");
+			line.append(delimiter);
 	        //p_opttpl
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_vpe
-	        line+="0"+delimiter;
+			line.append("0");
+			line.append(delimiter);
 	        //p_vpe_value
-	        line+="0.0000"+delimiter;
+			line.append("0.0000");
+			line.append(delimiter);
 	        //p_vpe_status
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_image.1
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_image.2
-	        line+=delimiter;
+			line.append(delimiter);
 	        String image_name=result.getString("c076");
 	        if(image_name!=null&&image_name.length()>0) {
 	        	if(image_name.toLowerCase().contains(".jpg")) {
 	        		image_name=image_name.substring(0,image_name.length()-4)+".jpg";
 	        	}
-	        	line+=image_name+delimiter;
+	        	line.append(image_name);
 	        } else {
-	        	line+="noimage.gif"+delimiter;
+	        	line.append("noimage.gif");
 	        }
+			line.append(delimiter);
 	        //englische beschreibungen
-	        line+="|||||||"+delimiter;
+			line.append("|||||||");
 	        //p_name.de
 			if((tmp=result.getString("c003"))==null) tmp="";
-	        line+=tmp+delimiter;
+			line.append(tmp);
+			line.append(delimiter);
 	        //p_desc.de
 	        try {
 	        	String temp=result.getString("c080");
 	        	if(temp==null) temp="";
 				if (rtf_reader.isValid(temp)) {
 					rtf_reader.parse(temp);
-					line+=rtf_html.format(rtf_reader.root,false);
+					line.append(rtf_html.format(rtf_reader.root,false));
 				} else {
-					line+=temp;
+					line.append(temp);
 				}
 			} catch (Exception e) {
 	    		Logger.$(e,false,true);
 			}
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_shortdesc.de
 			if((tmp=result.getString("c073"))==null) tmp="";
-	        line+=tmp+delimiter;
+			line.append(tmp);
+			line.append(delimiter);
 	        //p_keywords.de
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_meta_title.de
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_meta_desc.de
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_meta_key.de
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_url.de
-	        line+=delimiter;
+			line.append(delimiter);
 	        //p_cat.0 = Hauptkategorie
 	        int id=result.getInt("Expr1");
 	        SimpleEntry<String,String>entry=Config.data.getKatalogs(id);
 	        if(entry!=null) {
-		        line+=entry.getValue()+delimiter;
+	        	line.append(entry.getValue());
+	        	line.append(delimiter);
 		        //p_cat.1 = Unterkategorie
-		        line+=entry.getKey();
+	        	line.append(entry.getKey());
 	        } else {
-		        line+="1TEMP"+delimiter;
-		        //p_cat.1 = Unterkategorie
-		        line+="";
+	        	line.append("1TEMP");
+	        	line.append(delimiter);
+		        line.append("");
 	        }
 		} catch (SQLException ex) {
     		Logger.$(ex.getMessage(),false,true);
     		Logger.$(ex);
 		}
-		return line+"\n";
+		line.append("\n");
+		return line.toString();
 	}
 	
 	public static File create_csv_file(String csv_string) {
@@ -347,6 +363,7 @@ Utils
 		if(!file.exists()) {
 			try {
 				file.createNewFile();
+				file.deleteOnExit();
 				write_csv_file(file,csv_string);
 			} catch (IOException e) {
 				Logger.$(e,false,true);
