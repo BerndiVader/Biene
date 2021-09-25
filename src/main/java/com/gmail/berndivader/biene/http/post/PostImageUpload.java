@@ -94,7 +94,7 @@ PostTask
 			public void failed(Exception e) {
 				PostImageUpload.this.failed=true;
 				Logger.$(e,false,true);
-				Logger.$(PostImageUpload.this.command+" failed.\nFehlermeldung: "+e.getMessage(),false,true);
+				Logger.$(PostImageUpload.this.command+" failed.\nFehlermeldung: "+e.getMessage(),false,false);
 				_failed(null);
 				latch.countDown();
 			}
@@ -110,7 +110,7 @@ PostTask
 			@Override
 			public void cancelled() {
 				PostImageUpload.this.failed=true;
-				Logger.$(PostImageUpload.this.command+" cancelled",false,true);
+				Logger.$(PostImageUpload.this.command+" cancelled",false,false);
 				_failed(null);
 				latch.countDown();
 			}

@@ -86,8 +86,8 @@ IPostTask
 			@Override
 			public void failed(Exception e) {
 				PostTask.this.failed=true;
-				Logger.$(e,false,true);
-				Logger.$(PostTask.this.command+" failed.\nFehlermeldung: "+e.getMessage(),false,true);
+				Logger.$(e,false,false);
+				Logger.$(PostTask.this.command+" failed.\nFehlermeldung: "+e.getMessage(),false,false);
 				_failed(null);
 				latch.countDown();
 			}
@@ -100,7 +100,7 @@ IPostTask
 			@Override
 			public void cancelled() {
 				PostTask.this.failed=true;
-				Logger.$(PostTask.this.command+" cancelled",false,true);
+				Logger.$(PostTask.this.command+" cancelled",false,false);
 				_failed(null);
 				latch.countDown();
 			}
