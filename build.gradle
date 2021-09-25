@@ -36,3 +36,10 @@ jar {
         configurations.included.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
+task copy (type: Copy) {
+
+	from 'build/libs/Biene2.jar'
+	into 'C:/Biene'
+	
+}
