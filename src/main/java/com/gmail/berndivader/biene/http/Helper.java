@@ -1,8 +1,8 @@
 package com.gmail.berndivader.biene.http;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
@@ -17,17 +17,19 @@ class
 Helper
 {
 	public static CloseableHttpAsyncClient client;
-	public static ExecutorService executor;
+	public static ThreadPoolExecutor executor;
 	
 	static {
-		executor=Executors.newFixedThreadPool(10);
+		executor=(ThreadPoolExecutor)Executors.newCachedThreadPool();
+		executor.setMaximumPoolSize(10);
+		
 		client=HttpAsyncClients.createDefault();
 		client.start();
 	}
 	
 	public static void init() {
 		if(client.isRunning()) {
-			Logger.$("HTTP Client gestartet.",false,true);
+			Logger.$("HTTP Client gestartet.",false,false);
 			new GetInfo(Config.data.getHttp_string(),EventEnum.HTTP_GET_VERSION);
 		} else {
 			Logger.$("HTTP Client konnte nicht gestartet werden.",false);
