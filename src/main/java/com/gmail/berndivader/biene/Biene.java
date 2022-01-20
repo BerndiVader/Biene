@@ -12,7 +12,7 @@ public
 class 
 Biene 
 {
-	public static final String BUILD = "20210925";
+	public static final String BUILD = "20220112";
 	public static boolean take_time=false;
 	public static boolean no_gui=false;
 	
@@ -21,6 +21,7 @@ Biene
 	
 	public static Batcher batcher;
 	public static Headless headless;
+	
 	
 	public static void main(String[] args) {
 		strict=false;
@@ -35,7 +36,7 @@ Biene
 		int size=args.length;
 		if(size>0) {
 			for(int i1=0;i1<size;i1++) {
-				if(args[i1].equalsIgnoreCase("-nogui")) {
+				if(args[i1].equalsIgnoreCase("-headless")) {
 					no_gui=true;
 				} else if(args[i1].equalsIgnoreCase("-timer")) {
 					take_time=true;
@@ -69,7 +70,6 @@ Biene
 			Utils.init();
 			
 			headless=new Headless();
-			
 		}
 		
 		
