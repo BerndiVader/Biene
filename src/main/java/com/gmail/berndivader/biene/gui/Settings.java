@@ -73,6 +73,7 @@ public class Settings extends JFrame {
 
 
 	public Settings() {
+		setTitle("Biene2 Konfiguration");
 		this.settings=this;
 		setAlwaysOnTop(true);
 		setBounds(100, 100, 628, 730);
