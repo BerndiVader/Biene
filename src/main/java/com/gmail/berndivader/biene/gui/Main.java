@@ -11,6 +11,7 @@ import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.db.UpdateShopTask;
+import com.gmail.berndivader.biene.db.ValidatePicture;
 
 import javax.swing.JTextArea;
 import javax.swing.BoxLayout;
@@ -24,6 +25,15 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -31,7 +41,13 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.DropMode;
 
 public 
 class 
@@ -50,6 +66,7 @@ JFrame {
 	public Settings settings;
 	
 	public JTextArea log_area;
+	
 	public JScrollPane scrollBar;
 	public TrayIcon tray_icon;
 	public SystemTray tray;
@@ -106,10 +123,12 @@ JFrame {
 		tray_icon.setPopupMenu(createPopup());
 		
 		log_area = new JTextArea();
+		log_area.setDropMode(DropMode.INSERT);
 		log_area.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		log_area.setEditable(false);
 		log_area.setLineWrap(true);
 		log_area.add(popup=createPopup());
+		
 		contentPane.add(log_area);
 	
 		scrollBar = new JScrollPane(log_area);
@@ -144,6 +163,58 @@ JFrame {
 				}
 			}
 		});
+		
+		log_area.setDropTarget(new DropTarget(log_area,new DropTargetListener() {
+
+			@Override
+			public void dragEnter(DropTargetDragEvent dtde) {
+			}
+
+			@Override
+			public void dragOver(DropTargetDragEvent dtde) {
+			}
+
+			@Override
+			public void dropActionChanged(DropTargetDragEvent dtde) {
+			}
+
+			@Override
+			public void dragExit(DropTargetEvent dte) {
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public void drop(DropTargetDropEvent dtde) {
+				if(dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+					dtde.acceptDrop(DnDConstants.ACTION_COPY);
+					Transferable t=dtde.getTransferable();
+					try {
+						List<File>files=(List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
+						if(files!=null) {
+							Utils.copy_pictures(files);
+							for(int i1=0;files.size()>i1;i1++) {
+								File file=files.get(i1);
+								if (file.getName().toLowerCase().endsWith(".jpg")) {
+									ValidatePicture valid=new ValidatePicture(file.getName());
+									valid.latch.await(30,TimeUnit.SECONDS);
+									Logger.$(file.getName()+" wird bein nächsten Update aktualisiert.");
+									if(!valid.bool) {
+										Logger.$("Achtung! Dateiname konnte keinem Artikel zugeordnet werden.");
+									}
+								}
+							}
+						}
+					} catch (UnsupportedFlavorException e) {
+						Logger.$(e);
+					} catch (IOException e) {
+						Logger.$(e);
+					} catch (InterruptedException e) {
+						Logger.$(e);
+					}
+				}
+			}
+			
+		}));
 		
 		log_area.addMouseListener(new MouseListener() {
         	 
