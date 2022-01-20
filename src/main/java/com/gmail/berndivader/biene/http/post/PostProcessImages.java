@@ -20,6 +20,8 @@ PostProcessImages
 extends
 PostTask
 {
+	public boolean more=false;
+	
 	public PostProcessImages(String url) {
 		super(url, null);
 		
@@ -37,17 +39,19 @@ PostTask
 		Document xml=Utils.getXMLDocument(response);
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
-			String outcome=result.get("OUTCOME");
-			Logger.$("Image-Prozess "+outcome,false,false);
+			more=!result.get("MESSAGE").equals("0");
+			Logger.$(result.get("OUTCOME"));
 		} else {
 			Logger.$("Image-Prozess hat ungewöhnlich geantwortet.",false,true);
 			_failed(response);
+			more=false;
 		}
 	}
 
 	@Override
 	public void _failed(HttpResponse response) {
 		failed=true;
+		more=false;
 	}
 
 }
