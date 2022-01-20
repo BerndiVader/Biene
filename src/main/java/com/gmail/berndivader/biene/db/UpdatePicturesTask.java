@@ -8,7 +8,6 @@ import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.http.post.PostImageUpload;
 import com.gmail.berndivader.biene.http.post.PostProcessImages;
-import com.gmail.berndivader.biene.http.post.PostValidateImage;
 
 public 
 class 
@@ -42,16 +41,20 @@ QueryBatchTask
 			PostImageUpload upload=new PostImageUpload(Config.data.getHttp_string(),file);
 			upload.latch.await(5,TimeUnit.MINUTES);
 			failed=upload.failed;
-			
-			if(!upload.failed) {
-				new PostValidateImage(Config.data.getHttp_string(),file.getName());
+		}
+		
+		boolean repeat=true;
+		while(repeat) {
+			PostProcessImages process=new PostProcessImages(Config.data.getHttp_string());
+			process.latch.await(10,TimeUnit.MINUTES);
+			repeat=process.more;
+			if(process.failed) {
+				failed=true;
+				break;
 			}
 		}
 		
-		PostProcessImages process=new PostProcessImages(Config.data.getHttp_string());
-		process.latch.await(10,TimeUnit.MINUTES);
-		
-		if(failed||process.failed) {
+		if(failed) {
 			failed();
 		} else {
 			completed();
