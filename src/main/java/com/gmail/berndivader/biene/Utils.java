@@ -127,6 +127,7 @@ Utils
 
     private static class ShutdownHook extends Thread {
         public void run() {
+        	Headless.exit=true;
             Logger.$("Biene wird beendet.",false);
             unlockFile();
             if(batcher!=null) {
