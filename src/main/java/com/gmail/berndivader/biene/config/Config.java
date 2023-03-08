@@ -24,36 +24,36 @@ Config
 	public static int version;
 	
 	static {
-		get_version();
+		getVersion();
 		config_dir=new File(Utils.working_dir.getAbsolutePath()+"/config");
 		config_file=new File(config_dir.getAbsolutePath()+"/config.json");
 	}
 	
 	public Config() {
 		if(!config_dir.exists()||!config_file.exists()) {
-			create_default();
+			createDefault();
 		} else {
-			if(load_config()) Logger.$("Konfiguration erfolgfreich geladen.",false,false);
+			if(loadConfig()) Logger.$("Konfiguration erfolgfreich geladen.",false,false);
 		}
 		if(data.getConfig_version()<version) {
 			data.setConfig_version(version);
-			Logger.$("Konfigurationsdatei älter als Biene, schreibe default.",false);
-			save_config();
-			if(load_config()) Logger.$("Konfiguration erfolgfreich geladen.",false,false);
+			Logger.$("Konfigurationsdatei ï¿½lter als Biene, schreibe default.",false);
+			saveConfig();
+			if(loadConfig()) Logger.$("Konfiguration erfolgfreich geladen.",false,false);
 		}
 	}
 	
-	private static String get_csv_header() {
-		return inputstream_to_string(Biene.class.getResourceAsStream("/csv_header.txt"));
+	private static String getCSVHeader() {
+		return inputstream2String(Biene.class.getResourceAsStream("/csv_header.txt"));
 	}
 	
-	private static void get_version() {
-		String parse=inputstream_to_string(Biene.class.getResourceAsStream("/version.info"));
+	private static void getVersion() {
+		String parse=inputstream2String(Biene.class.getResourceAsStream("/version.info"));
 		if(parse!=null) version=Integer.parseInt(parse);
 		Logger.$("Biene "+Biene.BUILD+" - Config: "+version,false);
 	}
 	
-	public static boolean load_config() {
+	public static boolean loadConfig() {
 		boolean ok=true;
 		try (FileReader reader=new FileReader(config_file.getAbsoluteFile())) {
 			data=new Gson().fromJson(reader,Gdata.class);
@@ -64,12 +64,12 @@ Config
 		if (!ok) {
 			Logger.$("Konfiguration konnte nicht geladen werden.",false,true);
 		} else {
-			if(data.get_csv_header()==null||data.get_csv_header().isEmpty()) data.set_csv_header(get_csv_header());
+			if(data.getCSVHeader()==null||data.getCSVHeader().isEmpty()) data.set_csv_header(getCSVHeader());
 		}
 		return ok;
 	}
 	
-	public static boolean save_config() {
+	public static boolean saveConfig() {
 		boolean error=false;
 		try (FileWriter writer=new FileWriter(config_file.getAbsoluteFile())) {
 	        new GsonBuilder().setPrettyPrinting().create().toJson(data,writer);
@@ -80,7 +80,7 @@ Config
 		return error;
 	}
 	
-	private static void create_default() {
+	private static void createDefault() {
 		boolean error=false;
 		config_dir.mkdir();
 		try (Reader reader=new InputStreamReader(Biene.class.getResourceAsStream("/config.json"))){
@@ -89,7 +89,7 @@ Config
 			Logger.$(e);
 		};
 		
-		error=save_config();
+		error=saveConfig();
 		if(!error) {
 			Logger.$("Default Konfiguration erfolgreich erstellt.",false);
 		} else {
@@ -98,7 +98,7 @@ Config
 		}
 	}
 	
-	static String inputstream_to_string(InputStream is) {
+	static String inputstream2String(InputStream is) {
 		String output=null;
 		try (Scanner s=new Scanner(is)){
 			s.useDelimiter("\\A");

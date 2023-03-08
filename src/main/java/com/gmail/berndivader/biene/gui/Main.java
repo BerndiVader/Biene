@@ -191,13 +191,13 @@ JFrame {
 					try {
 						List<File>files=(List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
 						if(files!=null) {
-							Utils.copy_pictures(files);
+							Utils.copyPictures(files);
 							for(int i1=0;files.size()>i1;i1++) {
 								File file=files.get(i1);
 								if (file.getName().toLowerCase().endsWith(".jpg")) {
 									ValidatePicture valid=new ValidatePicture(file.getName());
 									valid.latch.await(30,TimeUnit.SECONDS);
-									Logger.$(file.getName()+" wird bein nächsten Update aktualisiert.");
+									Logger.$(file.getName()+" wird bein nï¿½chsten Update aktualisiert.");
 									if(!valid.bool) {
 										Logger.$("Achtung! Dateiname konnte keinem Artikel zugeordnet werden.");
 									}

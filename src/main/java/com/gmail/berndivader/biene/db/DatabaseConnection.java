@@ -24,6 +24,7 @@ DatabaseConnection
 	   		if(connection==null||connection.isClosed()) {
 	   			Logger.$("Verbindung zum MS-SQL Server fehlgeschlagen.",false,true);
 	   		}
+	   		connection.close();
 		} catch (ClassNotFoundException | SQLException e) {
 			Logger.$(e);
 		}

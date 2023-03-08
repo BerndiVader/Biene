@@ -81,7 +81,7 @@ Utils
         } catch (URISyntaxException ex) {
         	Logger.$(ex);
         }
-    	update_picture_list();
+    	updatePicturesList();
     	
     }
     
@@ -127,7 +127,9 @@ Utils
 
     private static class ShutdownHook extends Thread {
         public void run() {
-        	Headless.exit=true;
+        	if(Biene.no_gui) {
+            	Headless.exit=true;
+        	}
             Logger.$("Biene wird beendet.",false);
             unlockFile();
             if(batcher!=null) {
@@ -209,7 +211,7 @@ Utils
 		new GetInfo(Config.data.getHttp_string(),EventEnum.HTTP_GET_VERSION);
 	}
 	
-	public static String make_csv_line(Action action_enum,ResultSet result,RtfReader rtf_reader,RtfHtml rtf_html) {
+	public static String makeCSVLine(Action action_enum,ResultSet result,RtfReader rtf_reader,RtfHtml rtf_html) {
 		
 		String tmp;
 		String delimiter="|";
@@ -365,7 +367,7 @@ Utils
 			try {
 				file.createNewFile();
 				file.deleteOnExit();
-				write_csv_file(file,csv_string);
+				writeCSVFIle(file,csv_string);
 			} catch (IOException e) {
 				Logger.$(e,false,true);
 			}
@@ -373,18 +375,18 @@ Utils
 		return file;
 	}
 	
-	private static void write_csv_file(File file,String csv_string) throws IOException {
+	private static void writeCSVFIle(File file,String csv_string) throws IOException {
 		FileWriter writer = new FileWriter(file);
 		writer.write(csv_string);
 		writer.close();
 	}
 	
-	public static void delete_csv_file(String file_name) {
+	public static void deleteCSVFile(String file_name) {
 		File file=new File(file_name);
 		if(file.exists()) file.delete();
 	}
 	
-	public static void copy_pictures(List<File>files) {
+	public static void copyPictures(List<File>files) {
 		int size=files.size();
 		for(int i1=0;i1<size;i1++) {
 			File file=files.get(i1);
@@ -399,10 +401,10 @@ Utils
 		}
 	}
 	
-	public static void update_picture_list() {
+	public static void updatePicturesList() {
 		pictures=new ArrayList<String>();
 		File[] files=null;
-		files = get_pictures();
+		files = getPictures();
 		int size=files.length;
 		for(int i1=0;i1<size;i1++) {
 			pictures.add(files[i1].getName());
@@ -410,8 +412,8 @@ Utils
 		Collections.sort(pictures);
 	}
 	
-	public static void validate_pictures() {
-		File[]files=get_pictures();
+	public static void validatePictures() {
+		File[]files=getPictures();
 		int size=files.length;
 		for(int i1=0;i1<size;i1++) {
 			File file=files[i1];
@@ -426,7 +428,7 @@ Utils
 		}
 	}
 	
-	public static File[]get_pictures() {
+	public static File[]getPictures() {
 		File folder=new File(Utils.working_dir+"/Bilder");
 		folder.mkdir();
 		return folder.listFiles();
@@ -473,7 +475,7 @@ Utils
 		}
 	}
 
-	public static void delete_selected_pictures(String[]selected_names) {
+	public static void deleteSelectedPictures(String[]selected_names) {
 		int size=selected_names.length;
 		if(size>0) {
 			

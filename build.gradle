@@ -40,6 +40,6 @@ jar {
 task copy (type: Copy) {
 
 	from 'build/libs/Biene2.jar'
-	into 'C:/Biene'
+	into '/c/Biene'
 	
 }

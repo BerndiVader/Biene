@@ -56,7 +56,7 @@ IQueryTask
 	
 	static String parseQuery(String source,boolean sucsess) {
 		String message=""+source.split(var)[0]+" ";
-		message+=sucsess?"erfolgreich ausgeführt":"fehlgeschlagen";
+		message+=sucsess?"erfolgreich ausgefÃ¼hrt":"fehlgeschlagen";
 		Logger.$(message,false,true);
 		return message;
 	}

@@ -22,6 +22,7 @@ public class SteuercodeQuery extends SimpleResultQuery {
 			try {
 				source.first();
 				code=source.getInt(1);
+				source.close();
 			} catch (SQLException e) {
 				Logger.$(e,false,true);
 			}
@@ -30,6 +31,12 @@ public class SteuercodeQuery extends SimpleResultQuery {
 	
 	@Override
 	public void failed() {
+		if(result.isPresent())
+			try {
+				result.get().close();
+			} catch (SQLException e) {
+				Logger.$(e,false,true);
+			}
 		Logger.$("Failed to get Steuercode for: "+this.code);
 	}
 

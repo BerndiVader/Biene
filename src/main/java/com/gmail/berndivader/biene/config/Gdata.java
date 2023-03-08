@@ -39,7 +39,7 @@ Cloneable
 		this.config_version = config_version;
 	}
 	
-	public String get_csv_header() {
+	public String getCSVHeader() {
 		return csv_header;
 	}
 	public void set_csv_header(String csv_header) {
@@ -47,31 +47,39 @@ Cloneable
 	}
 	
 	public String getConnection_string() {
-		return connection_string!=null?decode(connection_string):null;
+		return connection_string;
+		//return connection_string!=null?decode(connection_string):null;
 	}
 	public void setConnection_string(String connection_string) {
-		this.connection_string=encode(connection_string);
+		this.connection_string=connection_string;
+		//this.connection_string=encode(connection_string);
 	}
 	
 	public String getUsername() {
-		return username!=null?decode(username):null;
+		return username;
+		//return username!=null?decode(username):null;
 	}
 	public void setUsername(String username) {
-		this.username=encode(username);
+		this.username=username;
+		//this.username=encode(username);
 	}
 	
 	public String getPassword() {
-		return password!=null?decode(password):null;
+		return password;
+		//return password!=null?decode(password):null;
 	}
 	public void setPassword(String password) {
-		this.password=encode(password);
+		this.password=password;
+		//this.password=encode(password);
 	}
 	
 	public String getDatabase() {
-		return database!=null?decode(database):null;
+		return database;
+		//return database!=null?decode(database):null;
 	}
 	public void setDatabase(String database) {
-		this.database=encode(database);
+		this.database=database;
+		//this.database=encode(database);
 	}
 	
 	public String getWinlineQuery() {
@@ -168,10 +176,12 @@ Cloneable
 	}
 	
 	public String getHttp_string() {
-		return http_string!=null?decode(http_string):null;
+		return http_string;
+		//return http_string!=null?decode(http_string):null;
 	}
 	public void setHttp_string(String http_string) {
-		this.http_string=encode(http_string);
+		this.http_string=http_string;
+		//this.http_string=encode(http_string);
 	}
 	
 	public String getShopUser() {

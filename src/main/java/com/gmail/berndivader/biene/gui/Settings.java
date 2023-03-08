@@ -190,7 +190,7 @@ public class Settings extends JFrame {
 					@SuppressWarnings("unchecked")
 					java.util.List<File>files=(java.util.List<File>)e.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 					if(files!=null) {
-						Utils.copy_pictures(files);
+						Utils.copyPictures(files);
 					}
 				} catch (Exception ex) {
 					Logger.$(ex,false,true);
@@ -212,7 +212,7 @@ public class Settings extends JFrame {
 		
 		bilderPopup=new PopupMenu();
 		bilderPopup.add(new MenuItem("Generiere Bilder am Server"));
-		bilderPopup.add(new MenuItem("Entferne ausgewähltes Bild"));
+		bilderPopup.add(new MenuItem("Entferne ausgewï¿½hltes Bild"));
 		bilderPopup.add(new MenuItem("Verzeichnis aktualisieren"));
 		
 		bilderPopup.getItem(0).setActionCommand("update");
@@ -228,7 +228,7 @@ public class Settings extends JFrame {
 					new UpdatePicturesTask("");
 					break;
 				case "delete":
-					Utils.delete_selected_pictures(bilder.getSelectedItems());
+					Utils.deleteSelectedPictures(bilder.getSelectedItems());
 					break;
 				case "refresh":
 					break;
@@ -317,7 +317,7 @@ public class Settings extends JFrame {
 		restore = new Button("Zur\u00FCcksetzen");
 		restore.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				switch(JOptionPane.showConfirmDialog(settings,"Konfiguration neu laden?","Zurücksetzen",JOptionPane.OK_CANCEL_OPTION)) {
+				switch(JOptionPane.showConfirmDialog(settings,"Konfiguration neu laden?","Zurï¿½cksetzen",JOptionPane.OK_CANCEL_OPTION)) {
 				case 0:
 					update_fields();
 					break;
@@ -339,10 +339,10 @@ public class Settings extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getActionCommand().equals("Speichern")) {
-					switch(JOptionPane.showConfirmDialog(settings,"Konfiguration übernehmen und speichern?")) {
+					switch(JOptionPane.showConfirmDialog(settings,"Konfiguration ï¿½bernehmen und speichern?")) {
 						case 0:
 							update_config();
-							Config.save_config();
+							Config.saveConfig();
 							break;
 						case 1:
 							break;
@@ -395,7 +395,7 @@ public class Settings extends JFrame {
 	}
 	
 	private void update_pictures() {
-		Utils.update_picture_list();
+		Utils.updatePicturesList();
 		this.bilder.removeAll();
 		for(int i1=0;i1<Utils.pictures.size();i1++) {
 			this.bilder.add(Utils.pictures.get(i1));

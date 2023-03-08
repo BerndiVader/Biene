@@ -57,9 +57,10 @@ IQueryTask
 	@Override
 	public ResultSet call() throws Exception {
 		try (Connection conn=DatabaseConnection.getNewConnection()) {
-			PreparedStatement statement=conn.prepareStatement(this.query,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			result=Optional.ofNullable(statement.executeQuery());
-			this.completed();
+			try(PreparedStatement statement=conn.prepareStatement(this.query,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+				this.result=Optional.ofNullable(statement.executeQuery());
+				this.completed();
+			}
 		} catch (SQLException ex) {
 			Logger.$(ex,false,true);
 			this.failed();

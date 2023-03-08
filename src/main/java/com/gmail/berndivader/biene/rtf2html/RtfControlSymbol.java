@@ -2,7 +2,7 @@ package com.gmail.berndivader.biene.rtf2html;
 
 public 
 class 
-RtfControlSymbol 
+RtfControlSymbol
 extends
 RtfElement 
 {

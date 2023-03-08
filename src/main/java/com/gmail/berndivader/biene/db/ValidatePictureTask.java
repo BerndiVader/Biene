@@ -45,7 +45,13 @@ ResultQueryTask<File[]>
 				} catch (SQLException e) {
 					Logger.$(e,false,false);
 				}
-				Utils.update_picture_list();
+				Utils.updatePicturesList();
+				try {
+					response.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}

@@ -1,19 +1,19 @@
 package com.gmail.berndivader.biene;
 
-import java.io.Console;
+import java.io.PrintStream;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Headless {
 	
-	static Console console;
+	static PrintStream console;
 	static Scanner keyboard;
 	
 	public static boolean exit;
 	
 	static {
-		console=System.console();
-		keyboard=new Scanner(console.reader());
+		console=System.out;
+		keyboard=new Scanner(System.in);
 		exit=false;
 	}
 	

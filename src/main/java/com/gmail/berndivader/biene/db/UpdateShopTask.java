@@ -59,15 +59,15 @@ QueryBatchTask
 				changes.last();
 				change_counter+=changes.getRow();
 				String s1=changes.getRow()==1?"":"en";
-				update_info+=Integer.toString(changes.getRow())+" Änderung"+s1+", ";
+				update_info+=Integer.toString(changes.getRow()).concat(" Ã„nderung").concat(s1).concat(", ");
 			} else {
-				update_info+="0 Änderungen, ";
+				update_info+="0 ï¿½nderungen, ";
 			}
 			if(inserts.next()) {
 				inserts.last();
 				change_counter+=inserts.getRow();
 				String s1=inserts.getRow()==1?"":"en";
-				update_info+=Integer.toString(inserts.getRow())+" Neuerung"+s1+" und ";
+				update_info+=Integer.toString(inserts.getRow()).concat(" Neuerung").concat(s1).concat(" und ");
 			} else {
 				update_info+="0 Neuerungen und ";
 			}
@@ -75,9 +75,9 @@ QueryBatchTask
 				deletes.last();
 				change_counter+=deletes.getRow();
 				String s1=deletes.getRow()==1?"":"en";
-				update_info+=Integer.toString(deletes.getRow())+" Löschung"+s1+" gefunden.";
+				update_info+=Integer.toString(deletes.getRow()).concat(" LÃ¶schung").concat(s1).concat(" gefunden.");
 			} else {
-				update_info+="0 Löschungen gefunden.";
+				update_info+="0 LÃ¶schungen gefunden.";
 			}
 			Logger.$(update_info,false,true);
 			
@@ -86,7 +86,7 @@ QueryBatchTask
 				inserts.beforeFirst();
 				deletes.beforeFirst();
 				
-				String csv_string=Config.data.get_csv_header()+"\n";
+				String csv_string=Config.data.getCSVHeader().concat("\n");
 				
 				if(changes.next()) {
 					do {
@@ -94,7 +94,7 @@ QueryBatchTask
 				        if(image_name!=null&&image_name.length()>0) {
 				        	new PostValidateImageFile(Config.data.getHttp_string(),image_name);
 				        }
-						csv_string+=Utils.make_csv_line(Action.UPDATE,changes,rtf_reader,rtf_html);
+						csv_string+=Utils.makeCSVLine(Action.UPDATE,changes,rtf_reader,rtf_html);
 					}while(changes.next());
 				}
 				if(inserts.next()) {
@@ -103,12 +103,12 @@ QueryBatchTask
 				        if(image_name!=null&&image_name.length()>0) {
 				        	new PostValidateImageFile(Config.data.getHttp_string(),image_name);
 				        }
-						csv_string+=Utils.make_csv_line(Action.INSERT,inserts,rtf_reader,rtf_html);
+						csv_string+=Utils.makeCSVLine(Action.INSERT,inserts,rtf_reader,rtf_html);
 					}while(inserts.next());
 				}
 				if(deletes.next()) {
 					do {
-						csv_string+=Utils.make_csv_line(Action.DELETE,deletes,rtf_reader,rtf_html);
+						csv_string+=Utils.makeCSVLine(Action.DELETE,deletes,rtf_reader,rtf_html);
 					}while(deletes.next());
 				}
 				
@@ -133,9 +133,15 @@ QueryBatchTask
 				csv_file.delete();
 			}
 			this.completed();
+			changes.close();
+			deletes.close();
+			inserts.close();
+			statement.close();
 		} catch (Exception ex) {
 			Logger.$(ex,false,true);
 			this.failed();
+		} finally {
+			
 		}
 		new UpdatePicturesTask("");
 		this.took();
