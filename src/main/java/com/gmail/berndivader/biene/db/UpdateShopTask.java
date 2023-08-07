@@ -61,7 +61,7 @@ QueryBatchTask
 				String s1=changes.getRow()==1?"":"en";
 				update_info+=Integer.toString(changes.getRow()).concat(" Änderung").concat(s1).concat(", ");
 			} else {
-				update_info+="0 �nderungen, ";
+				update_info.concat("0 Änderungen, ");
 			}
 			if(inserts.next()) {
 				inserts.last();
@@ -69,7 +69,7 @@ QueryBatchTask
 				String s1=inserts.getRow()==1?"":"en";
 				update_info+=Integer.toString(inserts.getRow()).concat(" Neuerung").concat(s1).concat(" und ");
 			} else {
-				update_info+="0 Neuerungen und ";
+				update_info.concat("0 Neuerungen und ");
 			}
 			if(deletes.next()) {
 				deletes.last();
@@ -77,7 +77,7 @@ QueryBatchTask
 				String s1=deletes.getRow()==1?"":"en";
 				update_info+=Integer.toString(deletes.getRow()).concat(" Löschung").concat(s1).concat(" gefunden.");
 			} else {
-				update_info+="0 Löschungen gefunden.";
+				update_info.concat("0 Löschungen gefunden.");
 			}
 			Logger.$(update_info,false,true);
 			
@@ -90,19 +90,13 @@ QueryBatchTask
 				
 				if(changes.next()) {
 					do {
-				        String image_name=changes.getString("c076");
-				        if(image_name!=null&&image_name.length()>0) {
-				        	new PostValidateImageFile(Config.data.getHttp_string(),image_name);
-				        }
+						validateImage(changes.getString("c076"));
 						csv_string+=Utils.makeCSVLine(Action.UPDATE,changes,rtf_reader,rtf_html);
 					}while(changes.next());
 				}
 				if(inserts.next()) {
 					do {
-				        String image_name=inserts.getString("c076");
-				        if(image_name!=null&&image_name.length()>0) {
-				        	new PostValidateImageFile(Config.data.getHttp_string(),image_name);
-				        }
+						validateImage(changes.getString("c076"));
 						csv_string+=Utils.makeCSVLine(Action.INSERT,inserts,rtf_reader,rtf_html);
 					}while(inserts.next());
 				}
@@ -147,6 +141,12 @@ QueryBatchTask
 		this.took();
 		latch.countDown();
 		return null;
+	}
+	
+	private void validateImage(String image_name) {
+        if(image_name!=null&&image_name.length()>0) {
+        	new PostValidateImageFile(Config.data.getHttp_string(),image_name);
+        }
 	}
 
 	@Override

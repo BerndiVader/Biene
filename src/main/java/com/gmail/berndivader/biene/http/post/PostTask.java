@@ -65,7 +65,7 @@ IPostTask
 
 	public void start() {
 		if(Helper.client.isRunning()) {
-			future=Helper.executor.submit(this);
+			Helper.executor.submit(this);
 		} else {
 			Logger.$(this.command+" failed. http_client not running.",false,false);
 			failed=true;
@@ -75,7 +75,7 @@ IPostTask
 	
 	@Override
 	public HttpResponse call() throws Exception {
-		Future<HttpResponse>future=this.execute(post);
+		future=this.execute(post);
 		this.took();
 		return future.get(10,TimeUnit.MINUTES);
 	}

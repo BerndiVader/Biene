@@ -20,7 +20,8 @@ Logger
 	static File error_log;
 	
 	static {
-		error_log=new File(Utils.working_dir+"/error.log");
+		error_log=new File(Utils.working_dir.getAbsolutePath().concat("/error.log"));
+		Logger.$(error_log.getAbsolutePath());
 		try {
 			error_log.createNewFile();
 		} catch (IOException e) {
@@ -60,7 +61,7 @@ Logger
 			Logger.$(e1);
 		}
 		
-		$("ERROR: "+e.getMessage(),false,false);
+		$("ERROR: ".concat(e.getMessage()),false,false);
 		
 		pw.close();
 		try {
@@ -78,11 +79,11 @@ Logger
 					String[]arr1=Arrays.copyOfRange(arr, 50, arr.length);
 					String trimmed="";
 					for(int i1=0;i1<arr1.length;i1++) {
-						trimmed+=arr1[i1]+"\n";
+						trimmed+=arr1[i1].concat("\n");
 					}
 					Main.frame.log_area.setText(trimmed);
 				}
-				Main.frame.log_area.append(text+"\n");
+				Main.frame.log_area.append(text.concat("\n"));
 				if(balloned) Main.frame.tray_icon.displayMessage("Info",text,MessageType.NONE);
 			}
 		});

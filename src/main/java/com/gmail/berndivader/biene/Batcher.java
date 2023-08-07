@@ -51,7 +51,7 @@ Runnable
 				try {
 					current.future.get(1,TimeUnit.SECONDS);
 				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					Logger.$("Cancelled task "+current.getClass().getName()+" because of timeout.",false);
+					Logger.$("Cancelled task ".concat(current.getClass().getName()).concat(" because of timeout."),false);
 					current.future.cancel(false);
 				}
 			}

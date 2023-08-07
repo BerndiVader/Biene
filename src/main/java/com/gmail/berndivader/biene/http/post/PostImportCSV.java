@@ -53,7 +53,7 @@ PostTask
 				_failed(response);
 			}
 		} else {
-			Logger.$("CSV-Import hat ungewöhnlich geantwortet.",false,true);
+			Logger.$("CSV-Import hat ungewÃ¶hnlich geantwortet.",false,true);
 			_failed(response);
 		}
 	}

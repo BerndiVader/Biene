@@ -114,7 +114,7 @@ PostTask
 			String file_name=result.get("OUTCOME");
 			Logger.$("CSV-Upload von "+file_name+" "+result.get("MESSAGE"),false,false);
 		} else {
-			Logger.$("CSV-Upload hat ungewöhnlich geantwortet.",false,true);
+			Logger.$("CSV-Upload hat ungewÃ¶hnlich geantwortet.",false,true);
 			_failed(response);
 		}
 		response_file.delete();
