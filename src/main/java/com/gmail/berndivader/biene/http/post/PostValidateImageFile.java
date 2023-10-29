@@ -50,7 +50,7 @@ PostTask
 				Logger.$("Achtung! Keine Bild-Datei "+name+" am Server gefunden.",false,false);
 			}
 		} else {
-			Logger.$("Validate-Image-File hat ungewöhnlich geantwortet.",false,true);
+			Logger.$("Validate-Image-File hat ungewÃ¶hnlich geantwortet.",false,true);
 		}
 	}
 

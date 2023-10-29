@@ -251,15 +251,10 @@ Utils
 	        } else if(tax==2) {
 	        	tax=1;
 	        } else {
-	        	SteuercodeQuery query=new SteuercodeQuery("select c009 from t010 where c010 = "+tax);
+	        	SteuercodeQuery query=new SteuercodeQuery(tax);
 	        	try {
 					query.latch.await();
 					tax=query.code;
-					if(tax==10) {
-						tax=3;
-					} else if(tax==15) {
-						tax=4;
-					}
 				} catch (InterruptedException e) {
 					Logger.$(e,false,true);
 					tax=1;

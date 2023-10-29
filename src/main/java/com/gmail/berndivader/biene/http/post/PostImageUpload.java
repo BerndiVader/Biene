@@ -130,7 +130,7 @@ PostTask
 				Logger.$(e);
 			}
 		} else {
-			Logger.$("Image-Upload hat ungewöhnlich geantwortet.",false,true);
+			Logger.$("Image-Upload hat ungewï¿½hnlich geantwortet.",false,true);
 			_failed(response);
 		}
 		response_file.delete();

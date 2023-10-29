@@ -9,9 +9,10 @@ import com.gmail.berndivader.biene.enums.EventEnum;
 public class SteuercodeQuery extends SimpleResultQuery {
 	
 	public int code;
+	private static String query="select c009 from t010 where c010 = ";
 
-	public SteuercodeQuery(String query) {
-		super(query, EventEnum.UNKOWN);
+	public SteuercodeQuery(int tax) {
+		super(query+tax,EventEnum.UNKOWN);
 		code=1;
 	}
 	
@@ -26,6 +27,11 @@ public class SteuercodeQuery extends SimpleResultQuery {
 			} catch (SQLException e) {
 				Logger.$(e,false,true);
 			}
+		}
+		if(code==10) {
+			code=3;
+		} else if(code==15) {
+			code=4;
 		}
 	}
 	

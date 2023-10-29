@@ -47,7 +47,7 @@ PostTask
 				Logger.$("Achtung! Bild "+name+" kann keinem Artikel zugeordnet werden.",true,false);
 			}
 		} else {
-			Logger.$("Validate-Image hat ungewöhnlich geantwortet.",false,true);
+			Logger.$("Validate-Image hat ungewÃ¶hnlich geantwortet.",false,true);
 		}
 	}
 

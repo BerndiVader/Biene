@@ -42,7 +42,7 @@ PostTask
 			more=!result.get("MESSAGE").equals("0");
 			Logger.$(result.get("OUTCOME"));
 		} else {
-			Logger.$("Image-Prozess hat ungewöhnlich geantwortet.",false,true);
+			Logger.$("Image-Prozess hat ungewÃ¶hnlich geantwortet.",false,true);
 			_failed(response);
 			more=false;
 		}

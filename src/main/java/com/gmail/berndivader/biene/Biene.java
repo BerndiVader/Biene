@@ -33,9 +33,8 @@ Biene
 			System.exit(0);
 		}
 		
-		int size=args.length;
-		if(size>0) {
-			for(int i1=0;i1<size;i1++) {
+		if(args.length>0) {
+			for(int i1=0;i1<args.length;i1++) {
 				if(args[i1].equalsIgnoreCase("-headless")) {
 					no_gui=true;
 				} else if(args[i1].equalsIgnoreCase("-timer")) {

@@ -21,12 +21,10 @@ public class Headless {
 		
 		while(!exit) {
 			String input=console();
-			if(input!=null) {
-				if(input.startsWith(".")) {
-					
-				} else {
-					console.printf("%s",input);
-				}
+			if(input.startsWith(".")) {
+				
+			} else {
+				console.printf("%s",input);
 			}
 		}
 		
@@ -35,11 +33,11 @@ public class Headless {
 
 	private String console() {
 		console.printf("%s",">");
-		String input;
+		String input="";
 		try {
 	        input = keyboard.nextLine().toLowerCase();
 		} catch (NoSuchElementException e) {
-			input="";
+			input=e.getMessage();
 		}
 		return input;
 	}
