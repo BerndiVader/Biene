@@ -23,9 +23,8 @@ implements
 Callable<ResultSet>,
 IQueryTask
 {
-	public UUID uuid;
-	static String var="\\{biene_var\\}";
-	String query;
+	protected UUID uuid;
+	protected String query;
 	public Future<ResultSet>future;
 	public CountDownLatch latch;
 
