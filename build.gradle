@@ -24,21 +24,16 @@ dependencies {
 }
 
 jar {
-    
     rootSpec.exclude('**/META-INF/*.SF','**/META-INF/*.RSA')
-    
     manifest {
         attributes 'Main-Class': mainClassName
     }
-
     from {
         configurations.included.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
 task copy (type: Copy) {
-
 	from 'build/libs/Biene2.jar'
 	into '/c/Biene'
-	
 }
