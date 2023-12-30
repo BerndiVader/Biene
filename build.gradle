@@ -8,28 +8,29 @@ repositories {
 }
 
 configurations {
-    compile.extendsFrom(included)
+    compileClasspath.extendsFrom(supplied)
 }
 
 dependencies {
-    included 'org.apache.httpcomponents:httpclient:4.5.13'
-    included 'org.apache.httpcomponents:httpmime:4.5.13'
-    included 'org.apache.httpcomponents:httpclient-cache:4.5.13'
-    included 'org.apache.httpcomponents:httpasyncclient:4.1.4'
-    included 'org.apache.httpcomponents:httpasyncclient-cache:4.1.4'
-    included 'org.apache.httpcomponents:httpcore:4.4.14'
-    included 'org.apache.httpcomponents:httpcore-nio:4.4.14'
-    included 'com.google.code.gson:gson:2.8.6'
-    included 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
+    supplied 'org.apache.httpcomponents:httpclient:4.5.13'
+    supplied 'org.apache.httpcomponents:httpmime:4.5.13'
+    supplied 'org.apache.httpcomponents:httpclient-cache:4.5.13'
+    supplied 'org.apache.httpcomponents:httpasyncclient:4.1.4'
+    supplied 'org.apache.httpcomponents:httpasyncclient-cache:4.1.4'
+    supplied 'org.apache.httpcomponents:httpcore:4.4.14'
+    supplied 'org.apache.httpcomponents:httpcore-nio:4.4.14'
+    supplied 'com.google.code.gson:gson:2.8.6'
+    supplied 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
 }
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     rootSpec.exclude('**/META-INF/*.SF','**/META-INF/*.RSA')
     manifest {
         attributes 'Main-Class': mainClassName
     }
     from {
-        configurations.included.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.supplied.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
 }
