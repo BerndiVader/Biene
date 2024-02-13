@@ -1,1 +1,1 @@
-a interface for winline and modified webshop software in java and php. <br><br>compatible with modifiedshop1.06 and 2.x. it can be run on a single desktop or on a headless server and it needs admin access to the winline mssql database. 
+a interface for winline and modified webshop software in java and php. <br><br>compatible with modifiedshop1.06 and 2.x. it can be run on a single desktop or on a headless server and it needs access to the winline mssql database. 

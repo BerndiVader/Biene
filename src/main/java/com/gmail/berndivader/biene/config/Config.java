@@ -37,9 +37,9 @@ Config
 		}
 		if(data.getConfig_version()<version) {
 			data.setConfig_version(version);
-			Logger.$("Konfigurationsdatei �lter als Biene, schreibe default.",false);
+			Logger.$("Konfigurationsdatei Älter als Biene, schreibe default.",false);
 			saveConfig();
-			if(loadConfig()) Logger.$("Konfiguration erfolgfreich geladen.",false,false);
+			if(loadConfig()) Logger.$("Konfiguration erfolgreich geladen.",false,false);
 		}
 	}
 	
@@ -50,7 +50,7 @@ Config
 	private static void getVersion() {
 		String parse=inputstream2String(Biene.class.getResourceAsStream("/version.info"));
 		if(parse!=null) version=Integer.parseInt(parse);
-		Logger.$("Biene "+Biene.BUILD+" - Config: "+version,false);
+		Logger.$("Biene ".concat(Biene.BUILD).concat(" - Config: ")+version,false);
 	}
 	
 	public static boolean loadConfig() {

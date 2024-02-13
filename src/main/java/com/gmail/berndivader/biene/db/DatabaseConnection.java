@@ -46,8 +46,8 @@ DatabaseConnection
 			Connection connection=getNewConnection();
 			if(connection!=null&&!connection.isClosed()) {
 				Logger.$("Verbindungstest mit Winline SQL-Server erfolgreich.",true,true);
-				Logger.$("User: "+connection.getMetaData().getUserName(),false,true);
-				Logger.$("Datenbank: "+connection.getCatalog(),false,true);
+				Logger.$("User: ".concat(connection.getMetaData().getUserName()),false,true);
+				Logger.$("Datenbank: ".concat(connection.getCatalog()),false,true);
 				connection.close();
 			} else {
 				Logger.$("Verbindungstest mit Winline SQL-Server fehlgeschlagen.",true,true);

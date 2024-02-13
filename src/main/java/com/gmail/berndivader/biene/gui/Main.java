@@ -197,7 +197,7 @@ JFrame {
 								if (file.getName().toLowerCase().endsWith(".jpg")) {
 									ValidatePicture valid=new ValidatePicture(file.getName());
 									valid.latch.await(30,TimeUnit.SECONDS);
-									Logger.$(file.getName()+" wird bein n�chsten Update aktualisiert.");
+									Logger.$(file.getName()+" wird bein nächsten Update aktualisiert.");
 									if(!valid.bool) {
 										Logger.$("Achtung! Dateiname konnte keinem Artikel zugeordnet werden.");
 									}
