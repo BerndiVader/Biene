@@ -72,7 +72,7 @@ public class ValidatePicture extends ResultQueryTask<String> {
 	void adjustJpeg() throws IOException {
 		File file=new File(Utils.working_dir+"/Bilder/"+this.fname);
 		if(file.exists()) {
-			if(file.length()>3500000l) {
+			if(file.length()>0l) {
 				JPEGImageWriteParam param=new JPEGImageWriteParam(Locale.GERMAN);
 				param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
 				param.setCompressionQuality(0.75f);
