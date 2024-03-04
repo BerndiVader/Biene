@@ -1,7 +1,9 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-mainClassName = 'com.gmail.berndivader.biene.Biene'
+application {
+	mainClass.set("com.gmail.berndivader.biene.Biene")
+}
 
 repositories {
     mavenCentral()
@@ -27,7 +29,7 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     rootSpec.exclude('**/META-INF/*.SF','**/META-INF/*.RSA')
     manifest {
-        attributes 'Main-Class': mainClassName
+        attributes 'Main-Class': application.mainClass
     }
     from {
         configurations.supplied.collect { it.isDirectory() ? it : zipTree(it) }
