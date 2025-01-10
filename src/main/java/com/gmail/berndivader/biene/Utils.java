@@ -371,9 +371,11 @@ Utils
 	}
 	
 	private static void writeCSVFIle(File file,String csv_string) throws IOException {
-		FileWriter writer = new FileWriter(file);
-		writer.write(csv_string);
-		writer.close();
+		
+		try(FileWriter writer=new FileWriter(file)) {
+			writer.write(csv_string);
+		}
+
 	}
 	
 	public static void deleteCSVFile(String file_name) {

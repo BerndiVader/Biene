@@ -72,6 +72,7 @@ Logger
 	}
 	
 	static void awt_log(String text,boolean balloned,boolean http_log) {
+		if(text==null||text.isEmpty()) return;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				String[]arr=Main.frame.log_area.getText().split("\\n");
