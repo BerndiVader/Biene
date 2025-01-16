@@ -26,8 +26,8 @@ dependencies {
 }
 
 jar {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    rootSpec.exclude('**/META-INF/*.SF','**/META-INF/*.RSA')
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	rootSpec.exclude('**/META-INF/*.SF','**/META-INF/*.RSA')
     manifest {
         attributes 'Main-Class': application.mainClass
     }
@@ -37,7 +37,11 @@ jar {
 
 }
 
-task copy (type: Copy) {
-	from 'build/libs/Biene2.jar'
-	into '/c/Biene'
+task copy(type: Copy) {
+    group='build'
+    description='Copies the JAR file to /c/Biene/'
+    from jar.archiveFile
+    into 'c:/Biene'
+    dependsOn jar
 }
+

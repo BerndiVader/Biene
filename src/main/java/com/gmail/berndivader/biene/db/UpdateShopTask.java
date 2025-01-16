@@ -47,66 +47,65 @@ QueryBatchTask
 		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
 		try (Connection conn=DatabaseConnection.getNewConnection()) {
 			conn.prepareStatement(this.query).execute();
-			PreparedStatement statement=conn.prepareStatement(Config.data.getUpdatesQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			ResultSet changes=statement.executeQuery();
-			statement=conn.prepareStatement(Config.data.getInsertsQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			ResultSet inserts=statement.executeQuery();
-			statement=conn.prepareStatement(Config.data.getDeletesQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			ResultSet deletes=statement.executeQuery();
+			
 			String update_info="";
+			StringBuilder csv_string=new StringBuilder(Config.data.getCSVHeader().concat("\n"));
 			int change_counter=0;
-			if(changes.next()) {
-				changes.last();
-				change_counter+=changes.getRow();
-				String s1=changes.getRow()==1?"":"en";
-				update_info+=Integer.toString(changes.getRow()).concat(" Änderung").concat(s1).concat(", ");
-			} else {
-				update_info.concat("0 Änderungen, ");
+			
+			try(PreparedStatement statement=conn.prepareStatement(Config.data.getUpdatesQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+				try(ResultSet changes=statement.executeQuery()) {
+					if(changes.first()) {
+						do {
+							validateImage(changes.getString("c076"));
+							csv_string.append(Utils.makeCSVLine(Action.UPDATE,changes,rtf_reader,rtf_html));
+						} while(changes.next());
+						changes.last();
+						change_counter+=changes.getRow();
+						String s1=changes.getRow()==1?"":"en";
+						update_info+=Integer.toString(changes.getRow()).concat(" Änderung").concat(s1).concat(", ");
+					} else {
+						update_info+="0 Änderungen, ";
+					}
+				}
 			}
-			if(inserts.next()) {
-				inserts.last();
-				change_counter+=inserts.getRow();
-				String s1=inserts.getRow()==1?"":"en";
-				update_info+=Integer.toString(inserts.getRow()).concat(" Neuerung").concat(s1).concat(" und ");
-			} else {
-				update_info.concat("0 Neuerungen und ");
+			
+			try(PreparedStatement statement=conn.prepareStatement(Config.data.getInsertsQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+				try(ResultSet inserts=statement.executeQuery()) {
+					if(inserts.first()) {
+						do {
+							validateImage(inserts.getString("c076"));
+							csv_string.append(Utils.makeCSVLine(Action.INSERT,inserts,rtf_reader,rtf_html));
+						} while(inserts.next());
+						inserts.last();
+						change_counter+=inserts.getRow();
+						String s1=inserts.getRow()==1?"":"en";
+						update_info+=Integer.toString(inserts.getRow()).concat(" Neuerung").concat(s1).concat(" und ");
+					} else {
+						update_info+=("0 Neuerungen und ");
+					}
+				}
 			}
-			if(deletes.next()) {
-				deletes.last();
-				change_counter+=deletes.getRow();
-				String s1=deletes.getRow()==1?"":"en";
-				update_info+=Integer.toString(deletes.getRow()).concat(" Löschung").concat(s1).concat(" gefunden.");
-			} else {
-				update_info.concat("0 Löschungen gefunden.");
+			
+			try(PreparedStatement statement=conn.prepareStatement(Config.data.getDeletesQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+				try(ResultSet deletes=statement.executeQuery()) {
+					if(deletes.first()) {
+						do {
+							csv_string.append(Utils.makeCSVLine(Action.DELETE,deletes,rtf_reader,rtf_html));
+						} while(deletes.next());
+						deletes.last();
+						change_counter+=deletes.getRow();
+						String s1=deletes.getRow()==1?"":"en";
+						update_info+=Integer.toString(deletes.getRow()).concat(" Löschung").concat(s1).concat(" gefunden.");
+					} else {
+						update_info+="0 Löschungen gefunden.";
+					}
+				}
 			}
+			
 			Logger.$(update_info,false,true);
 			
 			if(change_counter>0) {
-				changes.beforeFirst();
-				inserts.beforeFirst();
-				deletes.beforeFirst();
-				
-				String csv_string=Config.data.getCSVHeader().concat("\n");
-				
-				if(changes.next()) {
-					do {
-						validateImage(changes.getString("c076"));
-						csv_string+=Utils.makeCSVLine(Action.UPDATE,changes,rtf_reader,rtf_html);
-					}while(changes.next());
-				}
-				if(inserts.next()) {
-					do {
-						validateImage(changes.getString("c076"));
-						csv_string+=Utils.makeCSVLine(Action.INSERT,inserts,rtf_reader,rtf_html);
-					}while(inserts.next());
-				}
-				if(deletes.next()) {
-					do {
-						csv_string+=Utils.makeCSVLine(Action.DELETE,deletes,rtf_reader,rtf_html);
-					}while(deletes.next());
-				}
-				
-				File csv_file=Utils.create_csv_file(csv_string);
+				File csv_file=Utils.create_csv_file(csv_string.toString());
 				if(csv_file!=null&&csv_file.exists()) {
 					String file_name=csv_file.getName();
 					PostUploadCSV upload=new PostUploadCSV(Config.data.getHttp_string(),csv_file);
@@ -126,17 +125,14 @@ QueryBatchTask
 				}
 				csv_file.delete();
 			}
+			
 			this.completed();
-			changes.close();
-			deletes.close();
-			inserts.close();
-			statement.close();
+			
 		} catch (Exception ex) {
 			Logger.$(ex,false,true);
 			this.failed();
-		} finally {
-			
 		}
+		
 		new UpdatePicturesTask("");
 		this.took();
 		latch.countDown();

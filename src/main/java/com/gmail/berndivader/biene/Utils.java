@@ -301,7 +301,7 @@ Utils
 	        }
 			line.append(delimiter);
 	        //englische beschreibungen
-			line.append("|||||||");
+			line.append("||||||||");
 	        //p_name.de
 			if((tmp=result.getString("c003"))==null) tmp="";
 			line.append(tmp);
