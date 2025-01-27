@@ -21,7 +21,6 @@ Helper
 	
 	static {
 		executor=(ThreadPoolExecutor)Executors.newCachedThreadPool();
-		executor.setMaximumPoolSize(10);
 		
 		client=HttpAsyncClients.createDefault();
 		client.start();
