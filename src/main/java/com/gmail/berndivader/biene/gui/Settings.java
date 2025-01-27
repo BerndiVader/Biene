@@ -212,7 +212,7 @@ public class Settings extends JFrame {
 		
 		bilderPopup=new PopupMenu();
 		bilderPopup.add(new MenuItem("Generiere Bilder am Server"));
-		bilderPopup.add(new MenuItem("Entferne ausgew�hltes Bild"));
+		bilderPopup.add(new MenuItem("Entferne ausgewähltes Bild"));
 		bilderPopup.add(new MenuItem("Verzeichnis aktualisieren"));
 		
 		bilderPopup.getItem(0).setActionCommand("update");
@@ -270,7 +270,7 @@ public class Settings extends JFrame {
 		contentPane.add(panel, gbc_panel);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		
-		label_4 = new Label("Gesch\u00E4ftsjahr:");
+		label_4 = new Label("Geschäftsjahr:");
 		panel.add(label_4);
 		
 		mesoyear_field = new TextField();
@@ -317,7 +317,7 @@ public class Settings extends JFrame {
 		restore = new Button("Zur\u00FCcksetzen");
 		restore.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				switch(JOptionPane.showConfirmDialog(settings,"Konfiguration neu laden?","Zur�cksetzen",JOptionPane.OK_CANCEL_OPTION)) {
+				switch(JOptionPane.showConfirmDialog(settings,"Konfiguration neu laden?","Zurücksetzen",JOptionPane.OK_CANCEL_OPTION)) {
 				case 0:
 					update_fields();
 					break;
@@ -339,7 +339,7 @@ public class Settings extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getActionCommand().equals("Speichern")) {
-					switch(JOptionPane.showConfirmDialog(settings,"Konfiguration �bernehmen und speichern?")) {
+					switch(JOptionPane.showConfirmDialog(settings,"Konfiguration übernehmen und speichern?")) {
 						case 0:
 							update_config();
 							Config.saveConfig();
