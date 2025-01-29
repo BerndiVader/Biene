@@ -91,7 +91,7 @@ Logger
 	}
 	
 	static void cli_log(String text,boolean balloned,boolean http_log) {
-		System.out.println(text);
+		if(text!=null) Headless.reader.printAbove(text);
 	}
 	
 }

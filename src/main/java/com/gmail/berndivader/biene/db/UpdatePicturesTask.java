@@ -46,7 +46,7 @@ QueryBatchTask
 		boolean repeat=true;
 		while(repeat) {
 			PostProcessImages process=new PostProcessImages(Config.data.getHttp_string());
-			process.latch.await(10,TimeUnit.MINUTES);
+			process.latch.await(1,TimeUnit.MINUTES);
 			repeat=process.more;
 			if(process.failed) {
 				failed=true;

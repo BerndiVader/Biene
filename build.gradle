@@ -23,6 +23,7 @@ dependencies {
     supplied 'org.apache.httpcomponents:httpcore-nio:4.4.14'
     supplied 'com.google.code.gson:gson:2.8.6'
     supplied 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
+    supplied 'org.jline:jline:3.28.0'
 }
 
 jar {

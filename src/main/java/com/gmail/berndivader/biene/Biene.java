@@ -23,7 +23,7 @@ Biene
 	public static Headless headless;
 	
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		strict=false;
 		try {
 			if(Utils.checkForInstance()) System.exit(0);
