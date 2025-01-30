@@ -51,6 +51,8 @@ import com.gmail.berndivader.biene.http.get.GetInfo;
 import com.gmail.berndivader.biene.http.post.PostSimple;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
 import com.gmail.berndivader.biene.rtf2html.RtfReader;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public
 class
@@ -60,13 +62,14 @@ Utils
     static FileChannel lock_fileChannel;
     static FileLock lock;
     static boolean running=false;
-    public static String key;
     static Calendar calendar;
     static SimpleDateFormat date_format;
     static Batcher batcher;
 	static DecimalFormat format;
-	public static List<String>pictures;
 	
+    public static String key;
+	public static List<String>pictures;
+	public static final Gson GSON=new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 	public static File working_dir;
     
     static {

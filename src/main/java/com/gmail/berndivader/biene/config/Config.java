@@ -12,8 +12,6 @@ import java.util.Scanner;
 import com.gmail.berndivader.biene.Biene;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 public 
 class 
@@ -56,7 +54,7 @@ Config
 	public static boolean loadConfig() {
 		boolean ok=true;
 		try (FileReader reader=new FileReader(config_file.getAbsoluteFile())) {
-			data=new Gson().fromJson(reader,Gdata.class);
+			data=Utils.GSON.fromJson(reader,Gdata.class);
 		} catch (IOException e) {
 			ok=false;
 			Logger.$(e);
@@ -72,7 +70,7 @@ Config
 	public static boolean saveConfig() {
 		boolean error=false;
 		try (FileWriter writer=new FileWriter(config_file.getAbsoluteFile())) {
-	        new GsonBuilder().setPrettyPrinting().create().toJson(data,writer);
+	        Utils.GSON.toJson(data,writer);
 		} catch (IOException e) {
 			error=true;
 			Logger.$(e);
@@ -84,7 +82,7 @@ Config
 		boolean error=false;
 		config_dir.mkdir();
 		try (Reader reader=new InputStreamReader(Biene.class.getResourceAsStream("/config.json"))){
-			data=new Gson().fromJson(reader,Gdata.class);
+			data=Utils.GSON.fromJson(reader,Gdata.class);
 		} catch (IOException e) {
 			Logger.$(e);
 		};
