@@ -47,6 +47,7 @@ import com.gmail.berndivader.biene.db.SteuercodeQuery;
 import com.gmail.berndivader.biene.db.ValidatePictureTask;
 import com.gmail.berndivader.biene.enums.Action;
 import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.http.Helper;
 import com.gmail.berndivader.biene.http.get.GetInfo;
 import com.gmail.berndivader.biene.http.post.PostSimple;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
@@ -58,17 +59,16 @@ public
 class
 Utils
 {
-    static File lock_file;
-    static FileChannel lock_fileChannel;
-    static FileLock lock;
-    static boolean running=false;
-    static Calendar calendar;
-    static SimpleDateFormat date_format;
-    static Batcher batcher;
-	static DecimalFormat format;
-	
-    public static String key;
-	public static List<String>pictures;
+    private static File lock_file;
+    private static FileChannel lock_fileChannel;
+    private static FileLock lock;
+    private static boolean running=false;
+    private static Calendar calendar;
+    private static SimpleDateFormat date_format;
+    private static DecimalFormat format;
+    private static String key;
+    
+    public static List<String>pictures;
 	public static final Gson GSON=new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 	public static File working_dir;
     
@@ -76,7 +76,6 @@ Utils
     	calendar=Calendar.getInstance();
     	date_format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	key="01234567";
-    	batcher=Biene.batcher;
     	format=new DecimalFormat("0.0000",DecimalFormatSymbols.getInstance(Locale.US));    	
         try {
             URI uri=Biene.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -85,7 +84,6 @@ Utils
         	Logger.$(ex);
         }
     	updatePicturesList();
-    	
     }
     
     public static void init() {
@@ -135,13 +133,12 @@ Utils
         	}
             Logger.$("Biene wird beendet.",false);
             unlockFile();
-            if(batcher!=null) {
-            	if(batcher!=null) {
-            		batcher.interrupt();
-            	}
-            }
+            Helper.close();
+        	if(Biene.batcher!=null) {
+        		Biene.batcher.interrupt();
+        	}
         }
-    }	
+    }
     
     public static String encrypt(String strClearText) {
     	String strData="";
@@ -210,7 +207,6 @@ Utils
 	
 	public static void showInfo() {
 		Logger.$("SQL-Server: "+Config.data.getConnection_string(),false,true);
-		Logger.$("User: "+Config.data.getUsername(),false,true);
 		new GetInfo(Config.data.getHttp_string(),EventEnum.HTTP_GET_VERSION);
 	}
 	
@@ -223,7 +219,7 @@ Utils
 
 		try {
 			//p_model
-			line.append(result.getString("c002"));
+			line.append(result.getString("p_model"));
 			line.append(delimiter);
 			//p_stock
 			line.append(Integer.toString(result.getInt("c008")-result.getInt("c009")));
@@ -238,14 +234,14 @@ Utils
 			//p_manufacturer
 			line.append(delimiter);
 			//p_fsk18
-			line.append(result.getInt("Expr1")==40?"1":"0");
+			line.append(result.getInt("p_web")==40?"1":"0");
 			line.append(delimiter);
 			//p_priceNoTax
 			line.append(format.format(result.getFloat("c007")));
 			line.append(delimiter);
-	        //p_priceNoTax 1-6
+	        //p_priceNoTax.1-6
 			line.append("||||||");
-	        //p_groupAcc 0-6
+	        //p_groupAcc.0-6
 			line.append("1|1|1|1|1|1|1|");
 	        //p_tax
 	        int tax=result.getInt("c030");
@@ -337,19 +333,13 @@ Utils
 			line.append(delimiter);
 	        //p_url.de
 			line.append(delimiter);
-	        //p_cat.0 = Hauptkategorie
-	        int id=result.getInt("Expr1");
+	        int id=result.getInt("p_web");
 	        SimpleEntry<String,String>entry=Config.data.getKatalogs(id);
-	        if(entry!=null) {
-	        	line.append(entry.getValue());
-	        	line.append(delimiter);
-		        //p_cat.1 = Unterkategorie
-	        	line.append(entry.getKey());
-	        } else {
-	        	line.append("1TEMP");
-	        	line.append(delimiter);
-		        line.append("");
-	        }
+	        //p_cat.0
+        	line.append(entry.getValue());
+        	line.append(delimiter);
+	        //p_cat.1
+        	line.append(entry.getKey());
 		} catch (SQLException ex) {
     		Logger.$(ex.getMessage(),false,true);
     		Logger.$(ex);
