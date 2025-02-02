@@ -151,7 +151,7 @@ Cloneable
 	public SimpleEntry<String,String>getKatalogs(int id){
 		if(katalogs==null) setKatalog(getKatalog());
 		if(katalogs.containsKey(id)) return katalogs.get(id);
-		return null;
+		return new SimpleEntry<String,String>("","1TEMP");
 	}
 	
 	public String getKatalog() {
