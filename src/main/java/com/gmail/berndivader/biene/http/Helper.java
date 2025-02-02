@@ -37,11 +37,11 @@ Helper
 	
 	public static void close() {
 		try {
-			client.close();
+			if(client!=null)client.close();
 		} catch (IOException e) {
 			Logger.$(e);
 		}
-		executor.shutdown();
+		if(executor!=null)executor.shutdown();
 	}
 	
 }
