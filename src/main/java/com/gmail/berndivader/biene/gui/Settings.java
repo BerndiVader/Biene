@@ -314,7 +314,7 @@ public class Settings extends JFrame {
 		speichern = new Button("Speichern");
 		panel_1.add(speichern);
 		
-		restore = new Button("Zur\u00FCcksetzen");
+		restore = new Button("Zurücksetzen");
 		restore.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				switch(JOptionPane.showConfirmDialog(settings,"Konfiguration neu laden?","Zurücksetzen",JOptionPane.OK_CANCEL_OPTION)) {
