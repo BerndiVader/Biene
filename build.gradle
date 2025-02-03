@@ -1,5 +1,9 @@
-apply plugin: 'java'
-apply plugin: 'application'
+import java.beans.PropertyChangeSupport
+
+plugins {
+	id 'java'
+	id 'application'
+}
 
 application {
 	mainClass.set("com.gmail.berndivader.biene.Biene")
@@ -13,6 +17,10 @@ configurations {
     compileClasspath.extendsFrom(supplied)
 }
 
+java {
+	toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
 dependencies {
     supplied 'org.apache.httpcomponents:httpclient:4.5.13'
     supplied 'org.apache.httpcomponents:httpmime:4.5.13'
@@ -24,6 +32,13 @@ dependencies {
     supplied 'com.google.code.gson:gson:2.8.6'
     supplied 'com.microsoft.sqlserver:mssql-jdbc:8.2.2.jre8'
     supplied 'org.jline:jline:3.28.0'
+}
+
+if(hasProperty('buildScan')) {
+	buildScan {
+		termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+		termsOfServiceAgree = 'yes'
+	}
 }
 
 jar {
