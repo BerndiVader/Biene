@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
@@ -21,7 +22,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 import java.util.UUID;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -31,12 +31,18 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -169,12 +175,9 @@ Utils
     }
     
     public static String loadStringFromStream(InputStream is) {
-		Scanner s=new Scanner(is);
-		s.useDelimiter("\\A");
-		String parse=s.hasNext()?s.next():"";
-		s.close();
+    	String parse="";
 		try {
-			is.close();
+			parse=new String(is.readAllBytes());
 		} catch (IOException e) {
     		Logger.$(e,false,true);
 		}
@@ -187,13 +190,25 @@ Utils
         	factory.setNamespaceAware(true);
 			DocumentBuilder builder=factory.newDocumentBuilder();
 			Document xml=builder.parse(is);
-			is.close();
 			return xml;
 		} catch (ParserConfigurationException | SAXException | IOException e) {
     		Logger.$(e,false,true);
 		}
     	return null;
     }
+    
+    public static String convertDocumentToString(Document doc) {
+    	try {
+    		TransformerFactory tf=TransformerFactory.newInstance();
+    		Transformer transformer=tf.newTransformer();
+    		StringWriter writer=new StringWriter();
+    		transformer.transform(new DOMSource(doc),new StreamResult(writer));
+    		return writer.getBuffer().toString();
+    	} catch(TransformerException e) {
+    		Logger.$(e);
+    		return null;
+    	}
+    }    
     
 	public static void writeLog(String log) {
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
@@ -425,26 +440,17 @@ Utils
 	}
 	
 	public static String getStringFromResponse(HttpResponse response) {
-		
-		InputStream stream;
 		try {
-			stream=response.getEntity().getContent();
-			try(Scanner s=new Scanner(stream)) {
-				s.useDelimiter("\\A");
-				String result=s.hasNext()?s.next():"";
-				return result;
-			}
-		} catch (UnsupportedOperationException | IOException e) {
+			return EntityUtils.toString(response.getEntity());
+		} catch(UnsupportedOperationException | IOException e) {
 			Logger.$(e);
 		}
 		return null;
 	}
 	
 	public static Document getXMLDocument(HttpResponse response) {
-		try {
-			InputStream stream=response.getEntity().getContent();
+		try(InputStream stream=response.getEntity().getContent()) {
 			Document xml=Utils.loadXMLFromStream(stream);
-			stream.close();
 			return xml;
 		} catch (UnsupportedOperationException | IOException e) {
 			Logger.$(e,false,true);
