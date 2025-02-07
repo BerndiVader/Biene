@@ -53,6 +53,32 @@ jar {
 
 }
 
+task copyPHP(type: Copy) {
+	group='build'
+	description='Copies local PHP files into git controlled dir.'
+	duplicatesStrategy=DuplicatesStrategy.INCLUDE
+	
+	copy {
+		from('php/shoproot/export') {
+			include('winline2_xtc.php','winline2_xtc_functions.php')
+		}
+		into('php/export')
+	}
+	copy {
+		from('php/shoproot/admin/includes/extra/modules/import/file_layout') {
+			include('winline2xtc.php')
+		}
+		into('php/admin/includes/extra/modules/import/file_layout')
+	}
+	copy {
+		from('php/shoproot/admin/includes/extra/modules/import/insert_before') {
+			include('winline2xtc.php')
+		}
+		into('php/admin/includes/extra/modules/import/insert_before')
+	}
+	
+}
+
 task copy(type: Copy) {
     group='build'
     description='Copies the JAR file to /c/Biene/'
