@@ -286,20 +286,20 @@ function ImageProzess()
     foreach($uploaded_images as $picture) 
     {
       $image=img_box(imagecreatefromjpeg(DIR_FS_CATALOG_UPLOADED_IMAGES.$picture),800,600);
-
-      if($image!== null)
+      
+      if($image!==null)
       {
         imagejpeg($image,DIR_FS_CATALOG_UPLOADED_IMAGES.$picture,100);
         rename(DIR_FS_CATALOG_UPLOADED_IMAGES.$picture, DIR_FS_CATALOG_ORIGINAL_IMAGES.$picture);
 
         $products_image_name=$picture;
-        if(strlen($outcome)==0)
+        if(strlen($outcome)===0)
         {
           $outcome.=$products_image_name;
         } 
         else 
         {
-          $outcome.=", {$products_image_name}";
+          $outcome.=",{$products_image_name}";
         }
 
         include(DIR_FS_ADMIN.'/includes/product_info_images.php');
@@ -393,5 +393,125 @@ function PostBieneLog()
 }
 
 //--------------------------------------------------------------
+
+function xtc_remove_product($product_id)
+{
+  global $LangID,$customers_statuses_array;
+
+  define('DIR_FS_CATALOG_ORIGINAL_IMAGES',DIR_FS_CATALOG.DIR_WS_ORIGINAL_IMAGES);
+  define('DIR_FS_CATALOG_MIDI_IMAGES',DIR_FS_CATALOG.DIR_WS_MIDI_IMAGES);
+  define('DIR_FS_CATALOG_INFO_IMAGES',DIR_FS_CATALOG.DIR_WS_INFO_IMAGES);
+  define('DIR_FS_CATALOG_POPUP_IMAGES',DIR_FS_CATALOG.DIR_WS_POPUP_IMAGES);
+  define('DIR_FS_CATALOG_THUMBNAIL_IMAGES',DIR_FS_CATALOG.DIR_WS_THUMBNAIL_IMAGES);
+  define('DIR_FS_CATALOG_MINI_IMAGES',DIR_FS_CATALOG.DIR_WS_MINI_IMAGES);
+  define('DIR_FS_CATALOG_IMAGES',DIR_FS_CATALOG.DIR_WS_IMAGES);
+
+  $product_image_query=xtc_db_query("select products_image from ".TABLE_PRODUCTS." where products_id='".xtc_db_input($product_id)."'");
+  $product_image=xtc_db_fetch_array($product_image_query);
+
+  $duplicate_image_query=xtc_db_query("select count(*) as total from ".TABLE_PRODUCTS." where products_image='".xtc_db_input($product_image['products_image'])."'");
+  $duplicate_image=xtc_db_fetch_array($duplicate_image_query);
+
+  if($duplicate_image['total']<2)
+  {
+    if(is_file(DIR_FS_CATALOG_POPUP_IMAGES.$product_image['products_image']))
+    {
+      @unlink(DIR_FS_CATALOG_POPUP_IMAGES.$product_image['products_image']);
+    }
+    if(is_file(DIR_FS_CATALOG_ORIGINAL_IMAGES.$product_image['products_image']))
+    {  
+      @unlink(DIR_FS_CATALOG_ORIGINAL_IMAGES.$product_image['products_image']);
+    }
+    if(is_file(DIR_FS_CATALOG_MINI_IMAGES.$product_image['products_image']))
+    {
+      @unlink(DIR_FS_CATALOG_MINI_IMAGES.$product_image['products_image']);
+    }
+    if(is_file(DIR_FS_CATALOG_THUMBNAIL_IMAGES.$product_image['products_image']))
+    {
+      @unlink(DIR_FS_CATALOG_THUMBNAIL_IMAGES.$product_image['products_image']);
+    }
+    if(is_file(DIR_FS_CATALOG_MIDI_IMAGES.$product_image['products_image']))
+    {
+      @unlink(DIR_FS_CATALOG_MIDI_IMAGES.$product_image['products_image']);
+    }
+    if(is_file(DIR_FS_CATALOG_INFO_IMAGES.$product_image['products_image']))
+    {
+      @unlink(DIR_FS_CATALOG_INFO_IMAGES.$product_image['products_image']);
+    }
+  }
+
+  $mo_images_query=xtc_db_query("SELECT image_name FROM ".TABLE_PRODUCTS_IMAGES." WHERE products_id='".(int)$product_id."'");
+  while($mo_images_values=xtc_db_fetch_array($mo_images_query))
+  {
+    $duplicate_more_image_query=xtc_db_query("SELECT count(*) AS total FROM ".TABLE_PRODUCTS_IMAGES." WHERE image_name='".xtc_db_input($mo_images_values['image_name'])."'");
+    $duplicate_more_image = xtc_db_fetch_array($duplicate_more_image_query);
+    if($duplicate_more_image['total']<2)
+    {
+      if(is_file(DIR_FS_CATALOG_POPUP_IMAGES.$mo_images_values['image_name'])) 
+      {
+        @unlink(DIR_FS_CATALOG_POPUP_IMAGES.$mo_images_values['image_name']);
+      }
+      if (is_file(DIR_FS_CATALOG_ORIGINAL_IMAGES.$mo_images_values['image_name']))
+      {
+        @unlink(DIR_FS_CATALOG_ORIGINAL_IMAGES.$mo_images_values['image_name']);
+      }
+      if (is_file(DIR_FS_CATALOG_MINI_IMAGES.$mo_images_values['image_name']))
+      {
+        @unlink(DIR_FS_CATALOG_MINI_IMAGES.$mo_images_values['image_name']);
+      }
+      if(is_file(DIR_FS_CATALOG_THUMBNAIL_IMAGES.$mo_images_values['image_name']))
+      {
+        @unlink(DIR_FS_CATALOG_THUMBNAIL_IMAGES.$mo_images_values['image_name']);
+      }
+      if(is_file(DIR_FS_CATALOG_MIDI_IMAGES.$mo_images_values['image_name']))
+      {
+        @unlink(DIR_FS_CATALOG_MIDI_IMAGES.$mo_images_values['image_name']);
+      }
+      if(is_file(DIR_FS_CATALOG_INFO_IMAGES.$mo_images_values['image_name']))
+      {
+        @unlink(DIR_FS_CATALOG_INFO_IMAGES.$mo_images_values['image_name']);
+      }
+    }
+  }
+
+  xtc_db_query("DELETE FROM ".TABLE_SPECIALS." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_XSELL." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_XSELL." WHERE xsell_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_IMAGES." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_TO_CATEGORIES." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_DESCRIPTION." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_ATTRIBUTES." WHERE products_id='".(int)$product_id."'");
+  xtc_db_query("DELETE FROM ".TABLE_CUSTOMERS_BASKET." WHERE products_id='" . (int)$product_id . "' OR products_id LIKE '".(int)$product_id."{%'");
+  xtc_db_query("DELETE FROM ".TABLE_CUSTOMERS_BASKET_ATTRIBUTES." WHERE products_id='".(int)$product_id."' OR products_id LIKE '".(int)$product_id."{%'");
+  xtc_db_query("DELETE FROM ".TABLE_PRODUCTS_TAGS." WHERE products_id='".(int)$product_id."'");
+
+  if(defined('MODULE_WISHLIST_SYSTEM_STATUS') && MODULE_WISHLIST_SYSTEM_STATUS=='true')
+  {
+    xtc_db_query("DELETE FROM ".TABLE_CUSTOMERS_WISHLIST." WHERE products_id='".(int)$product_id."' OR products_id LIKE '".(int)$product_id."{%'");
+    xtc_db_query("DELETE FROM ".TABLE_CUSTOMERS_WISHLIST_ATTRIBUTES." WHERE products_id='".(int)$product_id."' OR products_id LIKE '".(int)$product_id."{%'");
+  }
+
+  $customers_statuses_array=[];
+  $customers_statuses_query=xtc_db_query("select * from ".TABLE_CUSTOMERS_STATUS." where language_id='".$LangID."' order by customers_status_id");
+
+  while($customers_statuses=xtc_db_fetch_array($customers_statuses_query))
+  {
+    $customers_statuses_array[]=array('id'=>$customers_statuses['customers_status_id'],'text' => $customers_statuses['customers_status_name']);
+  }
+
+  for($i=0,$n=sizeof($customers_statuses_array);$i<$n;$i++)
+  {
+    xtc_db_query("delete from personal_offers_by_customers_status_".$i." where products_id='".xtc_db_input($product_id)."'");
+  }
+
+  $product_reviews_query=xtc_db_query("select reviews_id from ".TABLE_REVIEWS." where products_id='".xtc_db_input($product_id)."'");
+  while($product_reviews=xtc_db_fetch_array($product_reviews_query))
+  {
+    xtc_db_query("delete from ".TABLE_REVIEWS_DESCRIPTION." where reviews_id='".$product_reviews['reviews_id']."'");
+  }
+  xtc_db_query("delete from ".TABLE_REVIEWS." where products_id='".xtc_db_input($product_id)."'");
+
+}
 
 ?>

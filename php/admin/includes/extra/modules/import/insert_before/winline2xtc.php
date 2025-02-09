@@ -8,7 +8,8 @@ if($this->FileSheme["action"]=="Y")
         case "insert":
         {
             $query="SELECT products_status FROM products WHERE products_model ='".xtc_db_input($dataArray['p_model'])."'";
-            if($result=xtc_db_fetch_array(xtc_db_query($query)))
+            $raw=xtc_db_query($query);
+            if($result=xtc_db_fetch_array($raw))
             {
                 $products_array["products_status"]=(int)$result["products_status"];
             }
@@ -23,7 +24,8 @@ if($this->FileSheme["action"]=="Y")
             if(isset($products_array["products_status"]))
             {
                 $query="SELECT products_status FROM products WHERE products_model ='".xtc_db_input($dataArray['p_model'])."'";
-                if($result=xtc_db_fetch_array(xtc_db_query($query)))
+                $raw=xtc_db_query($query);
+                if($result=xtc_db_fetch_array($raw))
                 {
                     $products_array["products_status"]=(int)$result["products_status"];
                 }
@@ -34,7 +36,7 @@ if($this->FileSheme["action"]=="Y")
             }
             break;
         }
-        default:
+        case "delete":
         {
             $query=xtc_db_query("SELECT products_id FROM products WHERE products_model ='".xtc_db_input($dataArray['p_model'])."'");
             $data=xtc_db_fetch_array($query);
