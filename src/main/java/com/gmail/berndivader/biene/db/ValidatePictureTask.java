@@ -7,7 +7,7 @@ import java.sql.SQLException;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 public
 class
@@ -19,7 +19,7 @@ ResultQueryTask<File[]>
 	FilenameFilter filter;
 	File[]file_list;
 	
-	public ValidatePictureTask(String query,EventEnum event_enum,File[]files) {
+	public ValidatePictureTask(String query,Tasks event_enum,File[]files) {
 		super(query,event_enum);
 		
 		String[]split=query.split("c076=");

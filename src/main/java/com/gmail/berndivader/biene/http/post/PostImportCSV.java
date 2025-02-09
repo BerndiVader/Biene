@@ -14,7 +14,7 @@ import org.w3c.dom.Document;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.config.Config;
-import com.gmail.berndivader.biene.enums.ActionEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
 class
@@ -30,7 +30,7 @@ PostTask
 		builder.addPart("file_name",new StringBody(file_name,ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("user",new StringBody(Config.data.getShopUser(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("password",new StringBody(Config.data.getShopPassword(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("action",new StringBody(ActionEnum.IMPORT_CSV_FILE.action(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("action",new StringBody(Tasks.HTTP_POST_IMPORT_CSV_FILE.action(),ContentType.MULTIPART_FORM_DATA));
 		entity=builder.build();
 		post.setEntity(entity);
 		start();
@@ -43,13 +43,13 @@ PostTask
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(response);
+		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
 			Logger.$("CSV-Import von "+result.get("FILE_NAME")+" "+result.get("MESSAGE"),false,true);
 			if(result.get("MESSAGE")==null||!result.get("MESSAGE").equals("OK")) {
 				Logger.$("CSV-Import hat mit einem Fehler geantwortet.",false,true);
-				Utils.printOut("", xml.getChildNodes());
+				Utils.XML.printOut("", xml.getChildNodes());
 				_failed(response);
 			}
 		} else {

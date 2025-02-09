@@ -1,6 +1,6 @@
 package com.gmail.berndivader.biene.db;
 
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
 class
@@ -9,7 +9,7 @@ extends
 ResultQueryTask<String>
 {
 
-	public SimpleResultQuery(String query, EventEnum event_enum) {
+	public SimpleResultQuery(String query, Tasks event_enum) {
 		super(query,event_enum);
 		this._call();
 	}

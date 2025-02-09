@@ -23,12 +23,12 @@ extends
 QueryBatchTask
 {
 	
-	static String start_info="-- Starte Shop Update Task %s...";
-	static String scheduled_info="-- Scheduled Shop Update Task %s...";
-	static String ende_info="-- Beende Shop Update Task %s.";
+	private static final String START_INFO="-- Starte Shop Update Task %s...";
+	private static final String SCHEDULED_INFO="-- Scheduled Shop Update Task %s...";
+	private static final String END_INFO="-- Beende Shop Update Task %s.";
 	
-	RtfReader rtf_reader;
-	RtfHtml rtf_html;
+	private RtfReader rtf_reader;
+	private RtfHtml rtf_html;
 	
 	public UpdateShopTask(String query) {
 		super(query);
@@ -37,15 +37,16 @@ QueryBatchTask
 		rtf_html=new RtfHtml();
 		
 		this.add();
-		Logger.$(String.format(scheduled_info,this.uuid.toString()),false,false);
+		Logger.$(String.format(SCHEDULED_INFO,this.uuid.toString()),false,false);
 	}
 	
 	@Override
 	public ResultSet call() throws Exception {
-		Logger.$(String.format(start_info,this.uuid.toString()),false,true);
+		Logger.$(String.format(START_INFO,this.uuid.toString()),false,true);
 		int mesoYear=Integer.parseInt(Config.data.getMeso_year());
 		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
-		try (Connection conn=DatabaseConnection.getNewConnection()) {
+
+		try(Connection conn=DatabaseConnection.getNewConnection()) {
 			conn.prepareStatement(this.query).execute();
 			
 			String update_info="";
@@ -147,7 +148,7 @@ QueryBatchTask
 
 	@Override
 	public void completed() {
-		Logger.$(String.format(ende_info,this.uuid.toString()),false,true);
+		Logger.$(String.format(END_INFO,this.uuid.toString()),false,true);
 	}
 
 	@Override

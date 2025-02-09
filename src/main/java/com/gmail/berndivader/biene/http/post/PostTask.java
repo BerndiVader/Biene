@@ -1,8 +1,6 @@
 package com.gmail.berndivader.biene.http.post;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -17,8 +15,7 @@ import org.w3c.dom.NodeList;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
-import com.gmail.berndivader.biene.enums.ActionEnum;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 
 public
@@ -32,12 +29,12 @@ Callable<HttpResponse>,
 IPostTask
 {
 	
-	String url;
-	HttpEntity entity;
+	protected String url;
+	protected HttpEntity entity;
 	public final CountDownLatch latch;
 	public Future<HttpResponse>future;
-	final HttpPost post;
-	final EventEnum command;
+	protected final HttpPost post;
+	protected final Tasks command;
 	
 	public boolean failed;
 	
@@ -46,7 +43,7 @@ IPostTask
 		if(!Helper.client.isRunning()) Helper.client.start();
 		failed=false;
 		this.url=url;
-		this.command=EventEnum.HTTP_POST_VARIOUS;
+		this.command=Tasks.VARIOUS;
 		latch=new CountDownLatch(1);
 		post=new HttpPost(url);
 	}
@@ -57,13 +54,13 @@ IPostTask
 		failed=false;
 		this.url=url;
 		this.entity=entity;
-		this.command=EventEnum.HTTP_POST_VARIOUS;
+		this.command=Tasks.VARIOUS;
 		latch=new CountDownLatch(1);
 		post=new HttpPost(url);
 		post.setEntity(this.entity);
 	}
 
-	public void start() {
+	protected void start() {
 		if(Helper.client.isRunning()) {
 			Helper.executor.submit(this);
 		} else {
@@ -120,27 +117,4 @@ IPostTask
 		return result;
 	}
 	
-	public static boolean isValid(Map<String,String>result) {
-		if(result.containsKey("ACTION")) {
-			ActionEnum action=ActionEnum.ERROR;
-			try {
-				action=ActionEnum.valueOfIgnoreCase(result.get("ACTION"));
-			} catch (IllegalArgumentException ex) {
-				Logger.$(ex.getMessage(),false,true);
-			}
-			return action!=ActionEnum.ERROR;
-		}
-		return true;
-	}
-	
-	protected static void parseError(Map<String,String>result) {
-		Iterator<Map.Entry<String,String>>iter=result.entrySet().iterator();
-		while(iter.hasNext()) {
-			Entry<String,String>entry=iter.next();
-			String key=entry.getKey();
-			String value=entry.getValue();
-			if(!value.isEmpty()) Logger.$(key+":"+value,false,true);
-		}
-	}
-
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 
 public
@@ -26,13 +26,13 @@ IQueryTask
 {
 	
 	final String query;
-	final EventEnum event_enum;
+	final Tasks event_enum;
 	public final CountDownLatch latch;
 	public Optional<ResultSet>result;
 	public Future<ResultSet>future;
 	public T object;
 
-	public ResultQueryTask(String query,EventEnum event_enum,int latch,T object) {
+	public ResultQueryTask(String query,Tasks event_enum,int latch,T object) {
 		super();
 		this.object=object;
 		this.result=Optional.empty();
@@ -41,12 +41,12 @@ IQueryTask
 		this.latch=new CountDownLatch(latch);
 	}
 	
-	public ResultQueryTask(String query,EventEnum event_enum,T object) {
+	public ResultQueryTask(String query,Tasks event_enum,T object) {
 		this(query,event_enum,1,object);
 	}
 	
 	
-	public ResultQueryTask(String query,EventEnum event_enum) {
+	public ResultQueryTask(String query,Tasks event_enum) {
 		this(query,event_enum,1,null);
 	}
 	

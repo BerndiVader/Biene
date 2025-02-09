@@ -25,10 +25,10 @@ PostTask
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(response);
+		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
-			Utils.printOut("",xml.getChildNodes());
+			Utils.XML.printOut("",xml.getChildNodes());
 			Logger.$(result.get("CODE")+":"+result.get("MESSAGE")+":"+result.get("ACTION"),false,false);
 		} else {
 			_failed(response);

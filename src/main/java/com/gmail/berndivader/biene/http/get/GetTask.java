@@ -11,7 +11,7 @@ import org.apache.http.concurrent.FutureCallback;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 
 public 
@@ -25,14 +25,14 @@ Callable<HttpResponse>,
 IGetTask
 {
 	final String url;
-	final EventEnum command;
+	final Tasks command;
 	final CountDownLatch latch;
 	final HttpGet request;
 	
 	public Future<HttpResponse>future;
 	public boolean failed;
 	
-	public GetTask(String url,EventEnum command) {
+	public GetTask(String url,Tasks command) {
 		super();
 		if(!Helper.client.isRunning()) Helper.client.start();
 		this.url=url;
@@ -50,7 +50,7 @@ IGetTask
 	@Override
 	public HttpResponse call() throws Exception {
 		Future<HttpResponse>future=this.execute(request);
-		return future.get(10,TimeUnit.MINUTES);
+		return future.get(15,TimeUnit.SECONDS);
 	}
 	
 	protected Future<HttpResponse>execute(HttpGet request){

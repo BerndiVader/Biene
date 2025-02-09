@@ -21,7 +21,7 @@ import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 
 public 
@@ -31,7 +31,7 @@ extends
 GetTask
 {
 
-	public GetProducts(String url, EventEnum command) {
+	public GetProducts(String url, Tasks command) {
 		super(url, command);
 	}
 	
@@ -59,7 +59,7 @@ GetTask
 				
 				boolean error=false;
 				GetProducts.this.failed=false;
-				Document xml=Utils.getXMLDocument(((HttpResponse)respond));
+				Document xml=Utils.XML.getXMLDocument(((HttpResponse)respond));
 				Transformer transformer=null;
 				
 				try {
@@ -101,8 +101,8 @@ GetTask
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(((HttpResponse)response));
-		Utils.printOut("",xml.getChildNodes());
+		Document xml=Utils.XML.getXMLDocument(((HttpResponse)response));
+		Utils.XML.printOut("",xml.getChildNodes());
 	}
 
 	@Override

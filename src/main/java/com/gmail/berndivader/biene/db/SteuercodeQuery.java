@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.gmail.berndivader.biene.Logger;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 public class SteuercodeQuery extends SimpleResultQuery {
 	
@@ -12,7 +12,7 @@ public class SteuercodeQuery extends SimpleResultQuery {
 	private static String query="select c009 from t010 where c010 = ";
 
 	public SteuercodeQuery(int tax) {
-		super(query+tax,EventEnum.UNKOWN);
+		super(query+tax,Tasks.UNKOWN);
 		code=1;
 	}
 	

@@ -12,7 +12,7 @@ import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.ActionEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
 class
@@ -27,7 +27,7 @@ PostTask
 		
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-		builder.addPart("action",new StringBody(ActionEnum.UPDATE_PICTURES.action(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("action",new StringBody(Tasks.HTTP_POST_UPDATE_PICTURES.action(),ContentType.MULTIPART_FORM_DATA));
 		this.entity=builder.build();
 		this.post.setEntity(this.entity);
 		
@@ -36,7 +36,7 @@ PostTask
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(response);
+		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
 			more=!result.get("MESSAGE").equals("0");

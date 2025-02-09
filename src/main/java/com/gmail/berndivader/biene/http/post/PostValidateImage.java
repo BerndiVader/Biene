@@ -11,9 +11,9 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.config.Config;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.ActionEnum;
 
 public 
 class 
@@ -32,7 +32,7 @@ PostTask
 		builder.addPart("image_name",new StringBody(file_name,ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("user",new StringBody(Config.data.getShopUser(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("password",new StringBody(Config.data.getShopPassword(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("action",new StringBody(ActionEnum.IMAGE_VALIDATE.action(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("action",new StringBody(Tasks.HTTP_POST_IMAGE_VALIDATE.action(),ContentType.MULTIPART_FORM_DATA));
 		
 		this.post.setEntity(builder.build());
 		this.start();
@@ -40,7 +40,7 @@ PostTask
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(response);
+		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
 			if(result.get("CODE").equals("-1")) {

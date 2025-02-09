@@ -52,7 +52,7 @@ import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.db.SteuercodeQuery;
 import com.gmail.berndivader.biene.db.ValidatePictureTask;
 import com.gmail.berndivader.biene.enums.Action;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 import com.gmail.berndivader.biene.http.get.GetInfo;
 import com.gmail.berndivader.biene.http.post.PostSimple;
@@ -174,41 +174,56 @@ Utils
     	return strData;
     }
     
-    public static String loadStringFromStream(InputStream is) {
-    	String parse="";
-		try {
-			parse=new String(is.readAllBytes());
-		} catch (IOException e) {
-    		Logger.$(e,false,true);
-		}
-		return parse;
-    }
-    
-    public static Document loadXMLFromStream(InputStream is) {
-    	try {
-        	DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
-        	factory.setNamespaceAware(true);
-			DocumentBuilder builder=factory.newDocumentBuilder();
-			Document xml=builder.parse(is);
-			return xml;
-		} catch (ParserConfigurationException | SAXException | IOException e) {
-    		Logger.$(e,false,true);
-		}
-    	return null;
-    }
-    
-    public static String convertDocumentToString(Document doc) {
-    	try {
-    		TransformerFactory tf=TransformerFactory.newInstance();
-    		Transformer transformer=tf.newTransformer();
-    		StringWriter writer=new StringWriter();
-    		transformer.transform(new DOMSource(doc),new StreamResult(writer));
-    		return writer.getBuffer().toString();
-    	} catch(TransformerException e) {
-    		Logger.$(e);
+    public static class XML {
+    	public static Document getXMLDocument(HttpResponse response) {
+    		try(InputStream stream=response.getEntity().getContent()) {
+    			return Utils.XML.loadXMLFromStream(stream);
+    		} catch (UnsupportedOperationException | IOException e) {
+    			Logger.$(e,false,true);
+    		}
     		return null;
     	}
-    }    
+    	
+    	public static void printOut(String parent,NodeList nodes) {
+    		int size=nodes.getLength();
+    		for(int i1=0;i1<size;i1++) {
+    			Node node=nodes.item(i1);
+    			if(node.hasChildNodes()) {
+    				printOut(parent.isEmpty()?node.getNodeName():parent+"."+node.getNodeName(),node.getChildNodes());
+    			} else if(node.getNodeType()==3) {
+    				String text=node.getTextContent().trim();
+    				if(!text.isEmpty()) Logger.$(parent+":"+text,false,false);
+    			};
+    		}
+    	}    
+        
+        public static Document loadXMLFromStream(InputStream is) {
+        	try {
+            	DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
+            	factory.setNamespaceAware(true);
+    			DocumentBuilder builder=factory.newDocumentBuilder();
+    			Document xml=builder.parse(is);
+    			return xml;
+    		} catch (ParserConfigurationException | SAXException | IOException e) {
+        		Logger.$(e,false,true);
+    		}
+        	return null;
+        }
+        
+        public static String convertDocumentToString(Document doc) {
+        	try {
+        		TransformerFactory tf=TransformerFactory.newInstance();
+        		Transformer transformer=tf.newTransformer();
+        		StringWriter writer=new StringWriter();
+        		transformer.transform(new DOMSource(doc),new StreamResult(writer));
+        		return writer.getBuffer().toString();
+        	} catch(TransformerException e) {
+        		Logger.$(e);
+        		return null;
+        	}
+        }    
+    	
+    }
     
 	public static void writeLog(String log) {
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
@@ -222,7 +237,7 @@ Utils
 	
 	public static void showInfo() {
 		Logger.$("SQL-Server: "+Config.data.getConnection_string(),false,true);
-		new GetInfo(Config.data.getHttp_string(),EventEnum.HTTP_GET_VERSION);
+		new GetInfo();
 	}
 	
 	public static String makeCSVLine(Action action_enum,ResultSet result,RtfReader rtf_reader,RtfHtml rtf_html) {
@@ -426,7 +441,7 @@ Utils
 			if(file_name.toUpperCase().contains(".JPG")) {
 				String name=file_name.substring(0,file_name.length()-4);
 				String query="select c076 from dbo.biene_temp where c076='"+name+"'";
-				new ValidatePictureTask(query,EventEnum.DB_VALIDATE_PICTURE,null);
+				new ValidatePictureTask(query,Tasks.DB_VALIDATE_PICTURE,null);
 			} else {
 				file.delete();
 			}
@@ -448,29 +463,6 @@ Utils
 		return null;
 	}
 	
-	public static Document getXMLDocument(HttpResponse response) {
-		try(InputStream stream=response.getEntity().getContent()) {
-			Document xml=Utils.loadXMLFromStream(stream);
-			return xml;
-		} catch (UnsupportedOperationException | IOException e) {
-			Logger.$(e,false,true);
-		}
-		return null;
-	}
-	
-	public static void printOut(String parent,NodeList nodes) {
-		int size=nodes.getLength();
-		for(int i1=0;i1<size;i1++) {
-			Node node=nodes.item(i1);
-			if(node.hasChildNodes()) {
-				printOut(parent.isEmpty()?node.getNodeName():parent+"."+node.getNodeName(),node.getChildNodes());
-			} else if(node.getNodeType()==3) {
-				String text=node.getTextContent().trim();
-				if(!text.isEmpty()) Logger.$(parent+":"+text,false,false);
-			};
-		}
-	}
-
 	public static void deleteSelectedPictures(String[]selected_names) {
 		int size=selected_names.length;
 		if(size>0) {

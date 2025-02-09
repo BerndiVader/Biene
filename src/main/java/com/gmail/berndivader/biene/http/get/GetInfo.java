@@ -8,7 +8,8 @@ import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.config.Config;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
 class
@@ -17,27 +18,29 @@ extends
 GetTask
 {
 
-	public GetInfo(String url, EventEnum command) {
-		super(url,command);
+	public GetInfo() {
+		super(Config.data.getHttp_string(),Tasks.HTTP_GET_VERSION);
 	}
 	
 	@Override
 	public HttpResponse call() throws Exception {
 		Future<HttpResponse>future=this.execute(request);
-		latch.await(10,TimeUnit.SECONDS);
-		if(this.failed) {
-			_failed(future.get());
+		boolean completed=latch.await(10,TimeUnit.SECONDS);
+		HttpResponse response=future.get();
+		
+		if(!completed||this.failed) {
+			_failed(response);
 		} else {
-			_completed(future.get());
+			_completed(response);
 		}
 		
 		this.took();
-		return future.get();
+		return response;
 	}
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(((HttpResponse)response));
+		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
 			int code=Integer.parseInt(xml.getElementsByTagName("CODE").item(0).getFirstChild().getNodeValue());
 			if(code==111) {

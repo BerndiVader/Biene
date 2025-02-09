@@ -23,7 +23,7 @@ import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.ActionEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 
 public 
@@ -51,7 +51,7 @@ PostTask
 			file_name=parse[0]+".jpg";
 		}
 		
-		post=new ZeroCopyPost(url+"&action="+ActionEnum.IMAGE_UPLOAD.action()+"&file_name="+file_name+"&file_size="+file.length(),file,ContentType.IMAGE_JPEG) {
+		post=new ZeroCopyPost(url+"&action="+Tasks.HTTP_POST_IMAGE_UPLOAD.action()+"&file_name="+file_name+"&file_size="+file.length(),file,ContentType.IMAGE_JPEG) {
 			
 			@Override
 			protected HttpEntityEnclosingRequest createRequest(final URI requestURI,final HttpEntity entity) {
@@ -119,7 +119,7 @@ PostTask
 
 	@Override
 	public void _completed(HttpResponse response) {
-		Document xml=Utils.getXMLDocument(response);
+		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
 			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
 			String file_name=result.get("OUTCOME");

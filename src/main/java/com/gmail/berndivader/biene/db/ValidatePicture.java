@@ -19,7 +19,7 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.enums.EventEnum;
+import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.Helper;
 
 public class ValidatePicture extends ResultQueryTask<String> {
@@ -29,7 +29,7 @@ public class ValidatePicture extends ResultQueryTask<String> {
 	String fname;
 	
 	public ValidatePicture(String filename) {
-		super(q.replace("%1%",filename), EventEnum.UNKOWN);
+		super(q.replace("%1%",filename),Tasks.UNKOWN);
 		fname=filename;
 		future=Helper.executor.submit(this);
 	}
