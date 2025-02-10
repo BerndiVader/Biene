@@ -9,21 +9,19 @@ import com.gmail.berndivader.biene.enums.Tasks;
 public class SteuercodeQuery extends SimpleResultQuery {
 	
 	public int code;
-	private static String query="select c009 from t010 where c010 = ";
+	private static final String QUERY="select c009 from t010 where c010=";
 
 	public SteuercodeQuery(int tax) {
-		super(query+tax,Tasks.UNKOWN);
+		super(QUERY+tax,Tasks.UNKOWN);
 		code=1;
 	}
 	
 	@Override
-	public void completed() {
-		if(result.isPresent()) {
-			ResultSet source=result.get();
+	public void completed(ResultSet result) {
+		if(result!=null) {
 			try {
-				source.first();
-				code=source.getInt(1);
-				source.close();
+				result.first();
+				code=result.getInt(1);
 			} catch (SQLException e) {
 				Logger.$(e,false,true);
 			}
@@ -36,13 +34,7 @@ public class SteuercodeQuery extends SimpleResultQuery {
 	}
 	
 	@Override
-	public void failed() {
-		if(result.isPresent())
-			try {
-				result.get().close();
-			} catch (SQLException e) {
-				Logger.$(e,false,true);
-			}
+	public void failed(ResultSet result) {
 		Logger.$("Failed to get Steuercode for: "+this.code);
 	}
 

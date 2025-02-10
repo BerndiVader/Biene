@@ -25,39 +25,34 @@ ResultQueryTask<File[]>
 		String[]split=query.split("c076=");
 		file_name=split[1].substring(1,split[1].length()-1);
 		file_list=new File("Bilder/").listFiles();
-		
-		this._call();
+		this.execute();
 	}
 	
 	@Override
-	public void completed() {
-		if(result.isPresent()) {
-			ResultSet response=result.get();
-			if(response!=null) {
-				try {
-					if(!response.next()) {
-						File file=new File("Bilder/"+file_name);
-						if(file.exists()) {
-							Logger.$("Entferne Bild "+file.getName()+" - kein Artikel gefunden.",false,false);
-							file.delete();
-						}
+	public void completed(ResultSet result) {
+		if(result!=null) {
+			try {
+				if(!result.next()) {
+					File file=new File("Bilder/"+file_name);
+					if(file.exists()) {
+						Logger.$("Entferne Bild "+file.getName()+" - kein Artikel gefunden.",false,false);
+						file.delete();
 					}
-				} catch (SQLException e) {
-					Logger.$(e,false,false);
 				}
-				Utils.updatePicturesList();
-				try {
-					response.close();
-				} catch (SQLException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			} catch (SQLException e) {
+				Logger.$(e,false,false);
 			}
+			Utils.updatePicturesList();
 		}
 	}
 
 	@Override
-	public void failed() {
+	public void failed(ResultSet result) {
 		Logger.$("ValidatePictureTask konnte nicht abgeschlossen werden.",false,false);
+	}
+
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=max;
 	}
 }

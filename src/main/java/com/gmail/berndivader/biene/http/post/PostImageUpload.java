@@ -24,7 +24,7 @@ import org.w3c.dom.Document;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.enums.Tasks;
-import com.gmail.berndivader.biene.http.Helper;
+import com.gmail.berndivader.biene.Helper;
 
 public 
 class
@@ -140,6 +140,12 @@ PostTask
 	public void _failed(HttpResponse response) {
 		failed=true;
 		response_file.delete();
+	}
+
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=3;
+		
 	}
 
 }

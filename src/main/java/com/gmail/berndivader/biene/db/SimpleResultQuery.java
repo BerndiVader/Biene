@@ -1,5 +1,7 @@
 package com.gmail.berndivader.biene.db;
 
+import java.sql.ResultSet;
+
 import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
@@ -11,15 +13,24 @@ ResultQueryTask<String>
 
 	public SimpleResultQuery(String query, Tasks event_enum) {
 		super(query,event_enum);
-		this._call();
+		this.execute();
 	}
 
 	@Override
-	public void completed() {
+	public void completed(ResultSet result) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public void failed() {
+	public void failed(ResultSet result) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=max;
 	}
 
 }

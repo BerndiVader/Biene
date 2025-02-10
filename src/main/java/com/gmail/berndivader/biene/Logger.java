@@ -11,7 +11,6 @@ import java.io.StringWriter;
 import java.util.Arrays;
 
 import com.gmail.berndivader.biene.gui.Main;
-import com.gmail.berndivader.biene.http.Helper;
 
 public
 class 

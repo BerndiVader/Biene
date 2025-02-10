@@ -55,5 +55,11 @@ PostTask
 	public void _failed(HttpResponse response) {
 	}
 
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=1l;
+		
+	}
+
 
 }

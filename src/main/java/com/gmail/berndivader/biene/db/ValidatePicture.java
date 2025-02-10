@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Locale;
-import java.util.Optional;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -20,7 +19,7 @@ import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.enums.Tasks;
-import com.gmail.berndivader.biene.http.Helper;
+import com.gmail.berndivader.biene.Helper;
 
 public class ValidatePicture extends ResultQueryTask<String> {
 	
@@ -35,11 +34,10 @@ public class ValidatePicture extends ResultQueryTask<String> {
 	}
 	
 	@Override
-	public void completed() {
-		if(result.isPresent()) {
-			ResultSet source=result.get();
+	public void completed(ResultSet result) {
+		if(result!=null) {
 			try {
-				bool=source.last();
+				bool=result.last();
 			} catch (SQLException e) {
 				Logger.$(e);
 			}
@@ -47,26 +45,27 @@ public class ValidatePicture extends ResultQueryTask<String> {
 	}
 	
 	@Override
-	public void failed() {
-		Logger.$("Failed to execute: "+query);
+	public void failed(ResultSet result) {
+		Logger.$("Failed to execute: "+action.action());
 	}
 	
 	@Override
 	public ResultSet call() throws Exception {
+		ResultSet result=null;
 		try (Connection conn=DatabaseConnection.getNewConnection()) {
 			PreparedStatement statement=conn.prepareStatement(this.query,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
-			result=Optional.ofNullable(statement.executeQuery());
-			this.completed();
+			result=statement.executeQuery();
+			this.completed(result);
 		} catch (SQLException ex) {
 			Logger.$(ex,false,true);
-			this.failed();
+			this.failed(null);
 		}
 		
 		adjustJpeg();
 		
 		this.took();
 		latch.countDown();
-		return result.orElse(null);
+		return result;
 	}
 	
 	void adjustJpeg() throws IOException {
@@ -82,6 +81,11 @@ public class ValidatePicture extends ResultQueryTask<String> {
 				writer.write(null,new IIOImage(image,null,null),param);
 			}
 		}
+	}
+
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=max;
 	}
 	
 }

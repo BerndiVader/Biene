@@ -41,7 +41,7 @@ QueryBatchTask
 	}
 	
 	@Override
-	public ResultSet call() throws Exception {
+	public Boolean call() throws Exception {
 		Logger.$(String.format(START_INFO,this.uuid.toString()),false,true);
 		int mesoYear=Integer.parseInt(Config.data.getMeso_year());
 		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
@@ -110,13 +110,13 @@ QueryBatchTask
 				if(csv_file!=null&&csv_file.exists()) {
 					String file_name=csv_file.getName();
 					PostUploadCSV upload=new PostUploadCSV(Config.data.getHttp_string(),csv_file);
-					upload.latch.await(5,TimeUnit.MINUTES);
+					upload.latch.await(upload.max_time,TimeUnit.MINUTES);
 					if(!upload.failed) {
 						PostImportCSV csv_import=new PostImportCSV(Config.data.getHttp_string(),file_name);
 						csv_import.latch.await(3,TimeUnit.MINUTES);
 						if(!csv_import.failed) {
 							SimpleQuery query=new SimpleQuery(Config.data.getVerifyQuery());
-							query.latch.await(3,TimeUnit.MINUTES);
+							query.latch.await(query.max_time,TimeUnit.MINUTES);
 						}
 					} else {
 						Logger.$("-- Upload csv file failed", true);
@@ -126,18 +126,17 @@ QueryBatchTask
 				}
 				csv_file.delete();
 			}
-			
-			this.completed();
+			this.completed(null);
 			
 		} catch (Exception ex) {
 			Logger.$(ex,false,true);
-			this.failed();
+			this.failed(null);
 		}
 		
 		new UpdatePicturesTask("");
 		this.took();
 		latch.countDown();
-		return null;
+		return true;
 	}
 	
 	private void validateImage(String image_name) {
@@ -147,12 +146,17 @@ QueryBatchTask
 	}
 
 	@Override
-	public void completed() {
+	public void completed(Void result) {
 		Logger.$(String.format(END_INFO,this.uuid.toString()),false,true);
 	}
 
 	@Override
-	public void failed() {
+	public void failed(Void result) {
+	}
+
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=5l;
 	}
 	
 }

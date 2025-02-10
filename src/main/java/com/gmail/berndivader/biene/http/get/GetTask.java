@@ -12,7 +12,7 @@ import org.apache.http.concurrent.FutureCallback;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
 import com.gmail.berndivader.biene.enums.Tasks;
-import com.gmail.berndivader.biene.http.Helper;
+import com.gmail.berndivader.biene.Helper;
 
 public 
 abstract 

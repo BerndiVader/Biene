@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
-import com.gmail.berndivader.biene.http.Helper;
+import com.gmail.berndivader.biene.Helper;
 
 public
 abstract 
@@ -19,12 +19,12 @@ extends
 Worker
 implements
 Callable<ResultSet>,
-IQueryTask
+IQueryTask<Boolean>
 {
-	static String var="\\{biene_var\\}";
-	String query;
+	protected final static String VAR="\\{biene_var\\}";
+	private final String query;
 	public Future<ResultSet>future;
-	public CountDownLatch latch;
+	public final CountDownLatch latch;
 
 	public QueryTask(String query, int latch) {
 		super();
@@ -36,33 +36,31 @@ IQueryTask
 		this(query,1);
 	}
 	
-	public void _call() {
+	@Override
+	public void execute() {
 		future=Helper.executor.submit(this);
 	}
 	
 	@Override
 	public ResultSet call() throws Exception {
-		try (Connection conn=DatabaseConnection.getNewConnection()) {
-			conn.prepareStatement(this.query).execute();
-			this.completed();
+		boolean done=false;
+		try(Connection conn=DatabaseConnection.getNewConnection()) {
+			done=conn.prepareStatement(this.query).execute();
+			this.completed(done);
 		} catch (SQLException ex) {
 			Logger.$(ex,false,true);
-			this.failed();
+			this.failed(done);
 		}
 		this.took();
 		latch.countDown();
 		return null;
 	}
 	
-	static String parseQuery(String source,boolean sucsess) {
-		String message=""+source.split(var)[0]+" ";
+	protected static String parseQuery(String source,boolean sucsess) {
+		String message=""+source.split(VAR)[0]+" ";
 		message+=sucsess?"erfolgreich ausgeführt":"fehlgeschlagen";
 		Logger.$(message,false,true);
 		return message;
-	}
-	
-	static void parseQueryAction(String action) {
-		
 	}
 	
 }

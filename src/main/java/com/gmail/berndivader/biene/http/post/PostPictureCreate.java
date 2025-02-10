@@ -41,4 +41,9 @@ PostTask
 		Logger.$("failed",false,false);
 	}
 
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=1l;
+	}
+
 }

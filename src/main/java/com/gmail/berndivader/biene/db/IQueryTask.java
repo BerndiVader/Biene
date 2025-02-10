@@ -2,9 +2,9 @@ package com.gmail.berndivader.biene.db;
 
 public 
 interface 
-IQueryTask 
+IQueryTask<T> 
 {
-	void completed();
-	void failed();
-
+	void execute();
+	void completed(T result);
+	void failed(T result);
 }

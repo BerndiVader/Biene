@@ -53,7 +53,6 @@ import com.gmail.berndivader.biene.db.SteuercodeQuery;
 import com.gmail.berndivader.biene.db.ValidatePictureTask;
 import com.gmail.berndivader.biene.enums.Action;
 import com.gmail.berndivader.biene.enums.Tasks;
-import com.gmail.berndivader.biene.http.Helper;
 import com.gmail.berndivader.biene.http.get.GetInfo;
 import com.gmail.berndivader.biene.http.post.PostSimple;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
@@ -140,9 +139,7 @@ Utils
             Logger.$("Biene wird beendet.",false);
             unlockFile();
             Helper.close();
-        	if(Biene.batcher!=null) {
-        		Biene.batcher.interrupt();
-        	}
+            Helper.scheduler.shutdown();
         }
     }
     

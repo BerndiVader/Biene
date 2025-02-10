@@ -1,7 +1,6 @@
 package com.gmail.berndivader.biene.db;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -9,23 +8,23 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
 import com.gmail.berndivader.biene.Batcher;
+import com.gmail.berndivader.biene.Helper;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
-import com.gmail.berndivader.biene.http.Helper;
 
-public
-abstract 
+public 
+abstract
 class
 QueryBatchTask
 extends
 Worker
 implements
-Callable<ResultSet>,
-IQueryTask
+Callable<Boolean>,
+IQueryTask<Void>
 {
 	protected UUID uuid;
 	protected String query;
-	public Future<ResultSet>future;
+	public Future<Boolean>future;
 	public CountDownLatch latch;
 
 	public QueryBatchTask(String query, int latch) {
@@ -45,21 +44,28 @@ IQueryTask
 		return true;
 	}
 	
-	public void add() {
-		Batcher.query_stack.push(this);
+	protected void add() {
+		Batcher.QUERY_STACK.offer(this);
 	}
 	
 	@Override
-	public ResultSet call() throws Exception {
+	public Boolean call() throws Exception {
+		boolean done=false;
 		try (Connection conn=DatabaseConnection.getNewConnection()) {
-			conn.prepareStatement(this.query).execute();
-			this.completed();
+			done=conn.prepareStatement(this.query).execute();
+			this.completed(null);
 		} catch (SQLException ex) {
 			Logger.$(ex,false,true);
-			this.failed();
+			this.failed(null);
 		}
 		this.took();
 		latch.countDown();
-		return null;
+		return done;
 	}
+
+	@Override
+	public void execute() {
+		future=Helper.executor.submit(this);
+	}
+
 }

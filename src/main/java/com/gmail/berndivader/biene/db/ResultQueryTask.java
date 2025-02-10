@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -12,7 +11,7 @@ import java.util.concurrent.Future;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
 import com.gmail.berndivader.biene.enums.Tasks;
-import com.gmail.berndivader.biene.http.Helper;
+import com.gmail.berndivader.biene.Helper;
 
 public
 abstract 
@@ -22,22 +21,20 @@ extends
 Worker
 implements
 Callable<ResultSet>,
-IQueryTask
+IQueryTask<ResultSet>
 {
 	
-	final String query;
-	final Tasks event_enum;
+	protected final String query;
+	protected final Tasks action;
 	public final CountDownLatch latch;
-	public Optional<ResultSet>result;
 	public Future<ResultSet>future;
 	public T object;
 
 	public ResultQueryTask(String query,Tasks event_enum,int latch,T object) {
 		super();
 		this.object=object;
-		this.result=Optional.empty();
 		this.query=query;
-		this.event_enum=event_enum;
+		this.action=event_enum;
 		this.latch=new CountDownLatch(latch);
 	}
 	
@@ -50,27 +47,29 @@ IQueryTask
 		this(query,event_enum,1,null);
 	}
 	
-	public void _call() {
+	@Override
+	public void execute() {
 		future=Helper.executor.submit(this);
 	}
 	
 	@Override
 	public ResultSet call() throws Exception {
+		ResultSet result=null;
 		try (Connection conn=DatabaseConnection.getNewConnection()) {
 			try(PreparedStatement statement=conn.prepareStatement(this.query,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
-				this.result=Optional.ofNullable(statement.executeQuery());
-				this.completed();
+				result=statement.executeQuery();
+				this.completed(result);
 			}
 		} catch (SQLException ex) {
 			Logger.$(ex,false,true);
-			this.failed();
+			this.failed(null);
 		}
 		this.took();
 		latch.countDown();
-		return result.orElse(null);
+		return result;
 	}
 	
-	public static void parseResult(ResultSet source) {
+	protected static void parseResult(ResultSet source) {
 		try {
 			int columns=source.getMetaData().getColumnCount();
 			source.beforeFirst();

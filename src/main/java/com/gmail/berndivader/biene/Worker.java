@@ -5,11 +5,13 @@ abstract
 class 
 Worker
 {
-	public long start_time;
+	protected long start_time;
+	public long max_time;
 	final static String message=" ms";
 	
 	public Worker() {
 		start_time=System.currentTimeMillis();
+		setMaxTime(1l);
 	}
 	
 	public void took() {
@@ -22,4 +24,6 @@ Worker
 	public long getRunningTime() {
 		return System.currentTimeMillis()-start_time;
 	}
+	
+	protected abstract void setMaxTime(long max);
 }

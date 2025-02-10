@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.gui.Main;
-import com.gmail.berndivader.biene.http.Helper;
 
 public 
 class 
@@ -51,19 +50,14 @@ Biene
 			});
 			
 			config=new Config();
-			
 			batcher=new Batcher();
-			batcher.start();
 			
 			Helper.init();
 			Utils.init();
 			
 		} else {
-			
 			config=new Config();
-			
 			batcher=new Batcher();
-			batcher.start();
 			
 			Helper.init();
 			Utils.init();

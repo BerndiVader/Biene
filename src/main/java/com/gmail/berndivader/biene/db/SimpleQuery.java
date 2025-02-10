@@ -9,18 +9,20 @@ QueryTask
 
 	public SimpleQuery(String query) {
 		super(query);
-		this._call();
+		this.execute();
 	}
 
 	@Override
-	public void completed() {
-		parseQuery(query,true);
-		parseQueryAction(query);
+	public void completed(Boolean result) {
 	}
 
 	@Override
-	public void failed() {
-		parseQuery(query,false);
+	public void failed(Boolean result) {
+	}
+
+	@Override
+	protected void setMaxTime(long max) {
+		this.max_time=max;
 	}
 
 }
