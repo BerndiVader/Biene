@@ -1,6 +1,6 @@
 package com.gmail.berndivader.biene;
 
-import java.util.Stack;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -11,61 +11,59 @@ import com.gmail.berndivader.biene.db.UpdateShopTask;
 
 public 
 class 
-Batcher 
-extends
-Thread
+Batcher
 implements
 Runnable
 {
-	public static Stack<QueryBatchTask>query_stack;
-	QueryBatchTask current;
+	public static final ConcurrentLinkedQueue<QueryBatchTask>QUERY_STACK;
+	
 	public long update_start;
 	public boolean auto_update;
+	private long startTime;
+	
+	private QueryBatchTask current;
 	
 	static {
-		query_stack=new Stack<>();
+		QUERY_STACK=new ConcurrentLinkedQueue<>();
 	}
 	
 	public Batcher() {
 		auto_update=Config.data.getAutoUpdate();
 		update_start=Config.data.getUpdateInterval();
+		
+		if(!QUERY_STACK.isEmpty()&&(current=QUERY_STACK.poll())!=null) current.batch();
+		startTime=Utils.getCurrentTimeMinutes();
+		
+		Helper.scheduler.scheduleAtFixedRate(this,0l,200l,TimeUnit.MILLISECONDS);
 	}
 	
-    @Override
+	@Override
     public void run() {
-		if(!query_stack.empty()&&(current=query_stack.pop())!=null) current.batch();
-		long startTime=Utils.getCurrentTimeMinutes();
 		
-		while(!this.isInterrupted()) {
-			
-			if(auto_update) {
-				long elapsedTime=Utils.getCurrentTimeMinutes()-startTime;
+		if(Helper.scheduler.isShutdown()) return;
 				
-				if(elapsedTime>=update_start) {
-					startTime=Utils.getCurrentTimeMinutes();
-					new UpdateShopTask(Config.data.getWinlineQuery());
-				}
-			}
+		if(auto_update) {
+			long elapsedTime=Utils.getCurrentTimeMinutes()-startTime;
 			
-			if(current!=null&&!current.future.isDone()&&!current.future.isCancelled()&&current.getRunningTime()/60000>1) {
-				try {
-					current.future.get(1,TimeUnit.SECONDS);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					Logger.$("Cancelled task ".concat(current.getClass().getName()).concat(" because of timeout."),false);
-					current.future.cancel(false);
-				}
-			}
-			
-			if(current==null||current.future.isDone()||current.future.isCancelled()) {
-				if(!query_stack.empty()&&(current=query_stack.pop())!=null) current.batch();
-			}
-			
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException e) {
-				Logger.$(e,false,true);
+			if(elapsedTime>=update_start) {
+				startTime=Utils.getCurrentTimeMinutes();
+				new UpdateShopTask(Config.data.getWinlineQuery());
 			}
 		}
+		
+		if(current!=null&&current.getRunningTime()/60000>current.max_time&&!current.future.isDone()&&!current.future.isCancelled()) {
+			try {
+				current.future.get(3l,TimeUnit.SECONDS);
+			} catch (InterruptedException | ExecutionException | TimeoutException e) {
+				Logger.$("Cancelled task ".concat(current.getClass().getName()).concat(" because of timeout."),false);
+				current.future.cancel(false);
+			}
+		}
+		
+		if(current==null||current.future.isDone()||current.future.isCancelled()) {
+			if(!QUERY_STACK.isEmpty()&&(current=QUERY_STACK.poll())!=null) current.batch();
+		}
+			
 	}
 
 }
