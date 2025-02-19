@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 
@@ -222,18 +223,43 @@ Utils
     	
     }
     
+	public static String getStringFromResource(String path) {
+
+		String output=null;
+		try(InputStream stream=Biene.class.getClassLoader().getResourceAsStream(path)) {
+			if(stream!=null) {
+				if(stream.available()>0) {
+					output=new String(stream.readAllBytes());
+				}
+			}
+		} catch (IOException e) {
+			Logger.$(e);
+		}
+		return output;
+
+	}
+	
+	public static String getStringFromResponse(HttpResponse response) {
+		try {
+			return EntityUtils.toString(response.getEntity());
+		} catch(UnsupportedOperationException | IOException e) {
+			Logger.$(e);
+		}
+		return null;
+	}    
+    
 	public static void writeLog(String log) {
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-		builder.addPart("user",new StringBody(Config.data.getShopUser(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("password",new StringBody(Config.data.getShopPassword(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("user",new StringBody(Config.data.shop_user(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody("log",ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("message",new StringBody("("+date_format.format(calendar.getTime())+") "+log,ContentType.MULTIPART_FORM_DATA));
-		new PostSimple(Config.data.getHttp_string(),builder.build());
+		new PostSimple(Config.data.http_string(),builder.build());
 	}
 	
 	public static void showInfo() {
-		Logger.$("SQL-Server: "+Config.data.getConnection_string(),false,true);
+		Logger.$("SQL-Server: "+Config.data.connection_string(),false,true);
 		new GetInfo();
 	}
 	
@@ -279,7 +305,7 @@ Utils
 	        } else {
 	        	SteuercodeQuery query=new SteuercodeQuery(tax);
 	        	try {
-					query.latch.await();
+	        		query.latch.await(query.max_minutes,TimeUnit.MINUTES);
 					tax=query.code;
 				} catch (InterruptedException e) {
 					Logger.$(e,false,true);
@@ -361,7 +387,7 @@ Utils
 	        //p_url.de
 			line.append(delimiter);
 	        int id=result.getInt("p_web");
-	        SimpleEntry<String,String>entry=Config.data.getKatalogs(id);
+	        SimpleEntry<String,String>entry=Config.data.katalogs(id);
 	        //p_cat.0
         	line.append(entry.getValue());
         	line.append(delimiter);
@@ -449,15 +475,6 @@ Utils
 		File folder=new File(Utils.working_dir+"/Bilder");
 		folder.mkdir();
 		return folder.listFiles();
-	}
-	
-	public static String getStringFromResponse(HttpResponse response) {
-		try {
-			return EntityUtils.toString(response.getEntity());
-		} catch(UnsupportedOperationException | IOException e) {
-			Logger.$(e);
-		}
-		return null;
 	}
 	
 	public static void deleteSelectedPictures(String[]selected_names) {
