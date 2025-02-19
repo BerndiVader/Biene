@@ -1,7 +1,6 @@
 package com.gmail.berndivader.biene.db;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -18,12 +17,13 @@ QueryTask
 extends
 Worker
 implements
-Callable<ResultSet>,
-IQueryTask<Boolean>
+Callable<Boolean>,
+IQueryTask<Void>
 {
 	protected final static String VAR="\\{biene_var\\}";
 	private final String query;
-	public Future<ResultSet>future;
+	
+	public Future<Boolean>future;
 	public final CountDownLatch latch;
 
 	public QueryTask(String query, int latch) {
@@ -42,18 +42,18 @@ IQueryTask<Boolean>
 	}
 	
 	@Override
-	public ResultSet call() throws Exception {
+	public Boolean call() throws Exception {
 		boolean done=false;
 		try(Connection conn=DatabaseConnection.getNewConnection()) {
 			done=conn.prepareStatement(this.query).execute();
-			this.completed(done);
+			this.completed(null);
 		} catch (SQLException ex) {
 			Logger.$(ex,false,true);
-			this.failed(done);
+			this.failed(null);
 		}
 		this.took();
 		latch.countDown();
-		return null;
+		return done;
 	}
 	
 	protected static String parseQuery(String source,boolean sucsess) {

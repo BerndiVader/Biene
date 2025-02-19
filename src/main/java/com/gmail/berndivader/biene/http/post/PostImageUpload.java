@@ -32,9 +32,9 @@ PostImageUpload
 extends
 PostTask
 {
-	File response_file,file;
-	ZeroCopyPost post;
-	ZeroCopyConsumer<HttpResponse>consumer;
+	private File response_file,file;
+	private ZeroCopyPost post;
+	private ZeroCopyConsumer<HttpResponse>consumer;
 
 	public PostImageUpload(String url, File file) throws FileNotFoundException {
 		super(url,null);
@@ -44,6 +44,7 @@ PostTask
 		response_file.deleteOnExit();
 		
 		String file_name=file.getName();
+				
 		String[]parse=file_name.split("\\.",-1);
 		if(parse.length>1) {
 			file_name=parse[0]+"."+parse[1].toLowerCase();
@@ -55,16 +56,16 @@ PostTask
 			
 			@Override
 			protected HttpEntityEnclosingRequest createRequest(final URI requestURI,final HttpEntity entity) {
-				HttpEntityEnclosingRequest request=super.createRequest(requestURI,entity);
-				return request;
+				return super.createRequest(requestURI,entity);
 			}
 			
 		};
-		
+						
 		consumer=new ZeroCopyConsumer<HttpResponse>(response_file) {
 			
 			@Override
 			protected HttpResponse process(HttpResponse response, File file, ContentType content_type) throws Exception {
+				
 				if(response.getStatusLine().getStatusCode()!=HttpStatus.SC_OK) {
 					failed=true;
 					Logger.$(PostImageUpload.this.command+" failed.\nFehlermeldung: "+response.getStatusLine(),false,true);
@@ -143,8 +144,8 @@ PostTask
 	}
 
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=3;
+	protected void max_minutes(long max) {
+		this.max_minutes=3l;
 		
 	}
 

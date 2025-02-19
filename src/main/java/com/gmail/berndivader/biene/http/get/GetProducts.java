@@ -111,8 +111,8 @@ GetTask
 	}
 
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=3l;
+	protected void max_minutes(long max) {
+		this.max_minutes=3l;
 		
 	}
 }

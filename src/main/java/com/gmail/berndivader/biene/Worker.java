@@ -5,14 +5,27 @@ abstract
 class 
 Worker
 {
+	/**
+	 * In milliseconds.
+	 */
 	protected long start_time;
-	public long max_time;
-	final static String message=" ms";
+	
+	/**
+	 * Max minutes the task is allowed to run until timeout.
+	 */
+	public long max_minutes;
+	private final static String message=" ms";
 	
 	public Worker() {
 		start_time=System.currentTimeMillis();
-		setMaxTime(1l);
+		max_minutes=1l;
 	}
+	
+	public Worker(long max_time) {
+		start_time=System.currentTimeMillis();
+		this.max_minutes=max_time;
+	}
+	
 	
 	public void took() {
 		if(Biene.take_time) {
@@ -21,9 +34,14 @@ Worker
 		}
 	}
 	
+	/**
+	 * Returns the running time in milliseconds since the worker started.
+	 *
+	 * @return the running time in milliseconds
+	 */	
 	public long getRunningTime() {
 		return System.currentTimeMillis()-start_time;
 	}
 	
-	protected abstract void setMaxTime(long max);
+	protected abstract void max_minutes(long max);
 }

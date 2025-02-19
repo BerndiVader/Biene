@@ -18,13 +18,12 @@ public class SteuercodeQuery extends SimpleResultQuery {
 	
 	@Override
 	public void completed(ResultSet result) {
-		if(result!=null) {
-			try {
-				result.first();
+		try {
+			if(result!=null&&result.first()) {
 				code=result.getInt(1);
-			} catch (SQLException e) {
-				Logger.$(e,false,true);
 			}
+		} catch(SQLException e) {
+			Logger.$(e,false,true);
 		}
 		if(code==10) {
 			code=3;

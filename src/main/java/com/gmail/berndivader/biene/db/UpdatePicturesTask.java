@@ -21,8 +21,8 @@ QueryBatchTask
 	static String ende_error="-- Bilder-Update Task %s erfolgreich aber fehlerhaft.";
 	static String ende_ok="-- Bilder-Update Task %s erfolgreich.";
 
-	public UpdatePicturesTask(String query) {
-		super(query);
+	public UpdatePicturesTask() {
+		super("",1);
 		
 		this.add();
 		Logger.$(String.format(scheduled_info,this.uuid.toString()),false,false);
@@ -37,15 +37,15 @@ QueryBatchTask
 		File folder=new File("Bilder/");
 		File[]files=folder.listFiles();
 		for(File file:files) {
-			PostImageUpload upload=new PostImageUpload(Config.data.getHttp_string(),file);
-			upload.latch.await(upload.max_time,TimeUnit.MINUTES);
+			PostImageUpload upload=new PostImageUpload(Config.data.http_string(),file);
+			upload.latch.await(upload.max_minutes,TimeUnit.MINUTES);
 			failed=upload.failed;
 		}
 		
 		boolean repeat=true;
 		while(repeat) {
-			PostProcessImages process=new PostProcessImages(Config.data.getHttp_string());
-			process.latch.await(process.max_time,TimeUnit.MINUTES);
+			PostProcessImages process=new PostProcessImages(Config.data.http_string());
+			process.latch.await(process.max_minutes,TimeUnit.MINUTES);
 			repeat=process.more;
 			if(process.failed) {
 				failed=true;
@@ -74,9 +74,12 @@ QueryBatchTask
 		Logger.$(String.format(ende_error,this.uuid.toString()),false,true);
 	}
 
+	/**
+	 * Worker timeout to 10 minutes.
+	 */
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=10l;
+	protected void max_minutes(long max) {
+		this.max_minutes=10l;
 	}
 
 }

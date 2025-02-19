@@ -13,16 +13,16 @@ QueryTask
 	}
 
 	@Override
-	public void completed(Boolean result) {
+	protected void max_minutes(long max) {
+		this.max_minutes=max;
 	}
 
 	@Override
-	public void failed(Boolean result) {
+	public void completed(Void result) {
 	}
 
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=max;
+	public void failed(Void result) {
 	}
 
 }

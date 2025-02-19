@@ -19,7 +19,7 @@ GetTask
 {
 
 	public GetInfo() {
-		super(Config.data.getHttp_string(),Tasks.HTTP_GET_VERSION);
+		super(Config.data.http_string(),Tasks.HTTP_GET_VERSION);
 	}
 	
 	@Override
@@ -61,7 +61,7 @@ GetTask
 	}
 
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=max;
+	protected void max_minutes(long max) {
+		this.max_minutes=max;
 	}
 }

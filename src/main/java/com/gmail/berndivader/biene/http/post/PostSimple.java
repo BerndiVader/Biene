@@ -25,8 +25,8 @@ PostTask
 	}
 
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=max;
+	protected void max_minutes(long max) {
+		this.max_minutes=max;
 	}
 
 

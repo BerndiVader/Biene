@@ -11,7 +11,6 @@ public
 class 
 Biene 
 {
-	public static final String BUILD = "20220112";
 	public static boolean take_time=false;
 	public static boolean no_gui=false;
 	
@@ -34,9 +33,9 @@ Biene
 		
 		if(args.length>0) {
 			for(int i1=0;i1<args.length;i1++) {
-				if(args[i1].equalsIgnoreCase("-headless")) {
+				if(args[i1].equalsIgnoreCase("--headless")) {
 					no_gui=true;
-				} else if(args[i1].equalsIgnoreCase("-timer")) {
+				} else if(args[i1].equalsIgnoreCase("--timer")) {
 					take_time=true;
 				}
 			}

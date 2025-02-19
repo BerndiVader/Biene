@@ -1,10 +1,8 @@
 package com.gmail.berndivader.biene.db;
 
-import java.sql.ResultSet;
-
 import com.gmail.berndivader.biene.enums.Tasks;
 
-public 
+public abstract 
 class
 SimpleResultQuery 
 extends
@@ -15,22 +13,16 @@ ResultQueryTask<String>
 		super(query,event_enum);
 		this.execute();
 	}
-
-	@Override
-	public void completed(ResultSet result) {
-		// TODO Auto-generated method stub
-		
+	
+	public SimpleResultQuery(String query, Tasks event_enum,long max_time) {
+		super(query,event_enum);
+		max_minutes(max_time);
+		this.execute();
 	}
-
+	
 	@Override
-	public void failed(ResultSet result) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=max;
+	protected void max_minutes(long max) {
+		this.max_minutes=max;
 	}
 
 }

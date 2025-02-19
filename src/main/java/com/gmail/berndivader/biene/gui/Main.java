@@ -7,7 +7,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.db.UpdateShopTask;
@@ -93,7 +92,7 @@ JFrame {
 		exit=false;
 		setType(Type.NORMAL);
 		setFont(new Font("Tahoma", Font.PLAIN, 12));
-		setTitle("Biene Tirolerbienenladen");
+		setTitle("WinLine2Modified");
 		frame=this;
 		setBounds(100, 100, 603, 560);
 		contentPane = new JPanel();
@@ -261,15 +260,15 @@ JFrame {
 		MenuItem popup_exit=new MenuItem("Beenden");
 		
 		popup.add(popup_update);
-		popup.add(popup_show);
 		popup.add(popup_about);
 		popup.add(popup_settings);
+		popup.add(popup_show);
 		popup.add(popup_exit);
 		
 		popup_update.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new UpdateShopTask(Config.data.getWinlineQuery());
+				new UpdateShopTask();
 			}
 		});
 		

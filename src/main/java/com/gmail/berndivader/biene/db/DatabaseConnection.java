@@ -20,7 +20,7 @@ DatabaseConnection
 	public DatabaseConnection() {
   		try {
 			Class.forName(sql_string);
-	   		Connection connection=DriverManager.getConnection(Config.data.getConnection_string(),Config.data.getUsername(),Config.data.getPassword());
+	   		Connection connection=DriverManager.getConnection(Config.data.connection_string(),Config.data.username(),Config.data.password());
 	   		if(connection==null||connection.isClosed()) {
 	   			Logger.$("Verbindung zum MS-SQL Server fehlgeschlagen.",false,true);
 	   		}
@@ -33,7 +33,7 @@ DatabaseConnection
 	public static Connection getNewConnection() {
 		Connection connection=null;
 		try {
-			connection=(DriverManager.getConnection(Config.data.getConnection_string(),Config.data.getUsername(),Config.data.getPassword()));
+			connection=(DriverManager.getConnection(Config.data.connection_string(),Config.data.username(),Config.data.password()));
 		} catch (SQLException e) {
 			Logger.$(e);
 		}

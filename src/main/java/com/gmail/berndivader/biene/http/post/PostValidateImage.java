@@ -30,8 +30,8 @@ PostTask
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 		builder.addPart("image_name",new StringBody(file_name,ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("user",new StringBody(Config.data.getShopUser(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("password",new StringBody(Config.data.getShopPassword(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("user",new StringBody(Config.data.shop_user(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody(Tasks.HTTP_POST_IMAGE_VALIDATE.action(),ContentType.MULTIPART_FORM_DATA));
 		
 		this.post.setEntity(builder.build());
@@ -56,8 +56,8 @@ PostTask
 	}
 
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=1l;
+	protected void max_minutes(long max) {
+		this.max_minutes=1l;
 		
 	}
 

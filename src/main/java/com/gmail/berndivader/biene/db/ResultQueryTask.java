@@ -26,8 +26,9 @@ IQueryTask<ResultSet>
 	
 	protected final String query;
 	protected final Tasks action;
+	protected Future<ResultSet>future;
+	
 	public final CountDownLatch latch;
-	public Future<ResultSet>future;
 	public T object;
 
 	public ResultQueryTask(String query,Tasks event_enum,int latch,T object) {
@@ -55,7 +56,7 @@ IQueryTask<ResultSet>
 	@Override
 	public ResultSet call() throws Exception {
 		ResultSet result=null;
-		try (Connection conn=DatabaseConnection.getNewConnection()) {
+		try(Connection conn=DatabaseConnection.getNewConnection()) {
 			try(PreparedStatement statement=conn.prepareStatement(this.query,ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
 				result=statement.executeQuery();
 				this.completed(result);

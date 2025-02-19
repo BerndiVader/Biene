@@ -30,8 +30,8 @@ QueryBatchTask
 	private RtfReader rtf_reader;
 	private RtfHtml rtf_html;
 	
-	public UpdateShopTask(String query) {
-		super(query);
+	public UpdateShopTask() {
+		super(Config.data.winline_query());
 		
 		rtf_reader=new RtfReader();
 		rtf_html=new RtfHtml();
@@ -43,17 +43,17 @@ QueryBatchTask
 	@Override
 	public Boolean call() throws Exception {
 		Logger.$(String.format(START_INFO,this.uuid.toString()),false,true);
-		int mesoYear=Integer.parseInt(Config.data.getMeso_year());
+		int mesoYear=Integer.parseInt(Config.data.meso_year());
 		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
 
 		try(Connection conn=DatabaseConnection.getNewConnection()) {
 			conn.prepareStatement(this.query).execute();
 			
 			String update_info="";
-			StringBuilder csv_string=new StringBuilder(Config.data.getCSVHeader().concat("\n"));
+			StringBuilder csv_string=new StringBuilder(Config.data.csv_header().concat("\n"));
 			int change_counter=0;
 			
-			try(PreparedStatement statement=conn.prepareStatement(Config.data.getUpdatesQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+			try(PreparedStatement statement=conn.prepareStatement(Config.data.updates_query(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
 				try(ResultSet changes=statement.executeQuery()) {
 					if(changes.first()) {
 						do {
@@ -70,7 +70,7 @@ QueryBatchTask
 				}
 			}
 			
-			try(PreparedStatement statement=conn.prepareStatement(Config.data.getInsertsQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+			try(PreparedStatement statement=conn.prepareStatement(Config.data.inserts_query(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
 				try(ResultSet inserts=statement.executeQuery()) {
 					if(inserts.first()) {
 						do {
@@ -87,7 +87,7 @@ QueryBatchTask
 				}
 			}
 			
-			try(PreparedStatement statement=conn.prepareStatement(Config.data.getDeletesQuery(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
+			try(PreparedStatement statement=conn.prepareStatement(Config.data.deletes_query(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
 				try(ResultSet deletes=statement.executeQuery()) {
 					if(deletes.first()) {
 						do {
@@ -109,14 +109,14 @@ QueryBatchTask
 				File csv_file=Utils.create_csv_file(csv_string.toString());
 				if(csv_file!=null&&csv_file.exists()) {
 					String file_name=csv_file.getName();
-					PostUploadCSV upload=new PostUploadCSV(Config.data.getHttp_string(),csv_file);
-					upload.latch.await(upload.max_time,TimeUnit.MINUTES);
+					PostUploadCSV upload=new PostUploadCSV(Config.data.http_string(),csv_file);
+					upload.latch.await(upload.max_minutes,TimeUnit.MINUTES);
 					if(!upload.failed) {
-						PostImportCSV csv_import=new PostImportCSV(Config.data.getHttp_string(),file_name);
+						PostImportCSV csv_import=new PostImportCSV(Config.data.http_string(),file_name);
 						csv_import.latch.await(3,TimeUnit.MINUTES);
 						if(!csv_import.failed) {
-							SimpleQuery query=new SimpleQuery(Config.data.getVerifyQuery());
-							query.latch.await(query.max_time,TimeUnit.MINUTES);
+							SimpleQuery query=new SimpleQuery(Config.data.verify_query());
+							query.latch.await(query.max_minutes,TimeUnit.MINUTES);
 						}
 					} else {
 						Logger.$("-- Upload csv file failed", true);
@@ -133,7 +133,7 @@ QueryBatchTask
 			this.failed(null);
 		}
 		
-		new UpdatePicturesTask("");
+		new UpdatePicturesTask();
 		this.took();
 		latch.countDown();
 		return true;
@@ -141,7 +141,7 @@ QueryBatchTask
 	
 	private void validateImage(String image_name) {
         if(image_name!=null&&image_name.length()>0) {
-        	new PostValidateImageFile(Config.data.getHttp_string(),image_name);
+        	new PostValidateImageFile(Config.data.http_string(),image_name);
         }
 	}
 
@@ -154,9 +154,12 @@ QueryBatchTask
 	public void failed(Void result) {
 	}
 
+	/**
+	 * Worker timeout to 5 minutes.
+	 */
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=5l;
+	protected void max_minutes(long max) {
+		this.max_minutes=5l;
 	}
 	
 }

@@ -28,8 +28,8 @@ Runnable
 	}
 	
 	public Batcher() {
-		auto_update=Config.data.getAutoUpdate();
-		update_start=Config.data.getUpdateInterval();
+		auto_update=Config.data.auto_update();
+		update_start=Config.data.update_interval();
 		
 		if(!QUERY_STACK.isEmpty()&&(current=QUERY_STACK.poll())!=null) current.batch();
 		startTime=Utils.getCurrentTimeMinutes();
@@ -47,11 +47,11 @@ Runnable
 			
 			if(elapsedTime>=update_start) {
 				startTime=Utils.getCurrentTimeMinutes();
-				new UpdateShopTask(Config.data.getWinlineQuery());
+				new UpdateShopTask();
 			}
 		}
 		
-		if(current!=null&&current.getRunningTime()/60000>current.max_time&&!current.future.isDone()&&!current.future.isCancelled()) {
+		if(current!=null&&current.getRunningTime()/60000>current.max_minutes&&!current.future.isDone()&&!current.future.isCancelled()) {
 			try {
 				current.future.get(3l,TimeUnit.SECONDS);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {

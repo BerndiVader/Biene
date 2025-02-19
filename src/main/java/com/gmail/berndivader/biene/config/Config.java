@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.Scanner;
+import java.util.Properties;
 
 import com.gmail.berndivader.biene.Biene;
 import com.gmail.berndivader.biene.Logger;
@@ -19,10 +19,11 @@ Config
 {
 	public static File config_dir,config_file;
 	public static Gdata data;
-	public static int version;
+	public static int config_version;
+	private static String BUILD="19700101";
 	
 	static {
-		getVersion();
+		initVersions();
 		config_dir=new File(Utils.working_dir.getAbsolutePath()+"/config");
 		config_file=new File(config_dir.getAbsolutePath()+"/config.json");
 	}
@@ -33,22 +34,31 @@ Config
 		} else {
 			if(loadConfig()) Logger.$("Konfiguration erfolgfreich geladen.",false,false);
 		}
-		if(data.getConfig_version()<version) {
-			data.setConfig_version(version);
+		if(data.config_version()<config_version) {
+			data.config_version(config_version);
 			Logger.$("Konfigurationsdatei Älter als Biene, schreibe default.",false);
 			saveConfig();
 			if(loadConfig()) Logger.$("Konfiguration erfolgreich geladen.",false,false);
 		}
 	}
 	
-	private static String getCSVHeader() {
-		return inputstream2String(Biene.class.getResourceAsStream("/csv_header.txt"));
+	
+	
+	private static String csv_header() {
+		return Utils.getStringFromResource("csv_header.txt");
 	}
 	
-	private static void getVersion() {
-		String parse=inputstream2String(Biene.class.getResourceAsStream("/version.info"));
-		if(parse!=null) version=Integer.parseInt(parse);
-		Logger.$("Biene ".concat(Biene.BUILD).concat(" - Config: ")+version,false);
+	private static void initVersions() {
+		Properties properties=new Properties();
+		try(InputStream stream=Biene.class.getClassLoader().getResourceAsStream("version.properties")) {
+			if(stream==null) throw new IOException("version.properties file not found!");
+			properties.load(stream);
+		} catch (IOException e) {
+			Logger.$(e);
+		}
+		Config.BUILD=properties.getProperty("build.date","19700101");
+		config_version=Integer.parseInt(properties.getProperty("config.version","4"));
+		Logger.$("Biene ".concat(Config.BUILD).concat(" - Config: ")+config_version,false);
 	}
 	
 	public static boolean loadConfig() {
@@ -62,7 +72,7 @@ Config
 		if (!ok) {
 			Logger.$("Konfiguration konnte nicht geladen werden.",false,true);
 		} else {
-			if(data.getCSVHeader()==null||data.getCSVHeader().isEmpty()) data.set_csv_header(getCSVHeader());
+			if(data.csv_header()==null||data.csv_header().isEmpty()) data.csv_header(csv_header());
 		}
 		return ok;
 	}
@@ -81,7 +91,7 @@ Config
 	private static void createDefault() {
 		boolean error=false;
 		config_dir.mkdir();
-		try (Reader reader=new InputStreamReader(Biene.class.getResourceAsStream("/config.json"))){
+		try (Reader reader=new InputStreamReader(Biene.class.getClassLoader().getResourceAsStream("config.json"))){
 			data=Utils.GSON.fromJson(reader,Gdata.class);
 		} catch (IOException e) {
 			Logger.$(e);
@@ -96,17 +106,4 @@ Config
 		}
 	}
 	
-	static String inputstream2String(InputStream is) {
-		String output=null;
-		try (Scanner s=new Scanner(is)){
-			s.useDelimiter("\\A");
-			output=s.hasNext()?s.next():"";
-			try {
-				is.close();
-			} catch (IOException e1) {
-				Logger.$(e1);
-			}
-		};
-		return output;
-	}
 }

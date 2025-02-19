@@ -28,8 +28,8 @@ PostTask
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 		builder.addPart("file_name",new StringBody(file_name,ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("user",new StringBody(Config.data.getShopUser(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("password",new StringBody(Config.data.getShopPassword(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("user",new StringBody(Config.data.shop_user(),ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody(Tasks.HTTP_POST_IMPORT_CSV_FILE.action(),ContentType.MULTIPART_FORM_DATA));
 		entity=builder.build();
 		post.setEntity(entity);
@@ -63,8 +63,8 @@ PostTask
 		failed=true;
 	}
 	@Override
-	protected void setMaxTime(long max) {
-		this.max_time=2l;
+	protected void max_minutes(long max) {
+		this.max_minutes=2l;
 	}
 
 }
