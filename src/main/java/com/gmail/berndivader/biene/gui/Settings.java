@@ -7,7 +7,9 @@ import javax.swing.JPanel;
 import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
+import com.gmail.berndivader.biene.db.SimpleResultQuery;
 import com.gmail.berndivader.biene.db.UpdatePicturesTask;
+import com.gmail.berndivader.biene.enums.Tasks;
 
 import java.awt.TextField;
 import java.awt.datatransfer.DataFlavor;
@@ -16,13 +18,19 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.awt.Label;
 import java.awt.Font;
 import java.awt.TextArea;
@@ -37,6 +45,16 @@ import java.awt.Checkbox;
 import java.awt.List;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
+import java.awt.Panel;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JComboBox;
+import java.awt.Color;
+import javax.swing.JLabel;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 
 public class Settings extends JFrame {
 
@@ -70,10 +88,14 @@ public class Settings extends JFrame {
 	private Label Inverval;
 	private List bilder;
 	private PopupMenu bilderPopup;
+	private JTextField client_info;
+	private JComboBox<String>client_select;
+	
+	private int client_selected_index=0;
 
 
 	public Settings() {
-		setTitle("Biene2 Konfiguration");
+		setTitle("Konfiguration");
 		this.settings=this;
 		setAlwaysOnTop(true);
 		setBounds(100, 100, 628, 730);
@@ -88,7 +110,7 @@ public class Settings extends JFrame {
 		gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0};
 		contentPane.setLayout(gbl_contentPane);
 		
-		label_5 = new Label("Httpstring:");
+		label_5 = new Label("HTTP Connection String:");
 		GridBagConstraints gbc_label_5 = new GridBagConstraints();
 		gbc_label_5.anchor = GridBagConstraints.NORTHWEST;
 		gbc_label_5.insets = new Insets(0, 0, 5, 0);
@@ -106,7 +128,7 @@ public class Settings extends JFrame {
 		gbc_textField.gridy = 1;
 		contentPane.add(http_string_field, gbc_textField);
 		
-		Label label = new Label("Connectionstring:");
+		Label label = new Label("MSSQL Connection String");
 		GridBagConstraints gbc_label = new GridBagConstraints();
 		gbc_label.anchor = GridBagConstraints.NORTHWEST;
 		gbc_label.insets = new Insets(0, 0, 5, 0);
@@ -116,7 +138,7 @@ public class Settings extends JFrame {
 		
 		connection_string_field=new TextField();
 		connection_string_field.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		connection_string_field.setText(Config.data.getConnection_string());
+		connection_string_field.setText(Config.data.connection_string());
 		GridBagConstraints gbc_connection_string_field = new GridBagConstraints();
 		gbc_connection_string_field.anchor = GridBagConstraints.NORTH;
 		gbc_connection_string_field.fill = GridBagConstraints.HORIZONTAL;
@@ -150,33 +172,33 @@ public class Settings extends JFrame {
 		sql_wl_zu_xtc = new TextArea();
 		tabbedPane.addTab("WL zu XTC", null, sql_wl_zu_xtc, null);
 		sql_wl_zu_xtc.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		sql_wl_zu_xtc.setText(Config.data.getWinlineQuery());
+		sql_wl_zu_xtc.setText(Config.data.winline_query());
 		
 		sql_find_changed = new TextArea();
 		sql_find_changed.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		tabbedPane.addTab("Updates", null, sql_find_changed, null);
-		sql_find_changed.setText(Config.data.getUpdatesQuery());
+		sql_find_changed.setText(Config.data.updates_query());
 		
 		sql_find_inserts = new TextArea();
 		sql_find_inserts.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		tabbedPane.addTab("Inserts", null, sql_find_inserts, null);
-		sql_find_inserts.setText(Config.data.getInsertsQuery());
+		sql_find_inserts.setText(Config.data.inserts_query());
 		
 		sql_find_deletes = new TextArea();
 		sql_find_deletes.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		tabbedPane.addTab("Deletes", null, sql_find_deletes, null);
-		sql_find_deletes.setText(Config.data.getDeletesQuery());
+		sql_find_deletes.setText(Config.data.deletes_query());
 		
 		sql_update_local = new TextArea();
 		sql_update_local.setText((String) null);
 		sql_update_local.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		tabbedPane.addTab("Verify Update", null, sql_update_local, null);
-		sql_find_deletes.setText(Config.data.getVerifyQuery());
+		sql_find_deletes.setText(Config.data.verify_query());
 		
 		katalog = new TextArea();
 		katalog.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		tabbedPane.addTab("Katalog", null, katalog, null);
-		katalog.setText(Config.data.getKatalog());
+		katalog.setText(Config.data.katalog());
 		
 		bilder = new List();
 		bilder.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -198,6 +220,27 @@ public class Settings extends JFrame {
 			}
 		});
 		
+		bilder.addComponentListener(new ComponentListener() {
+			
+			@Override
+			public void componentShown(ComponentEvent e) {
+				update_pictures();
+			}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {
+			}
+			
+			@Override
+			public void componentHidden(ComponentEvent e) {
+			}
+			
+		});
+		
 		bilder.addFocusListener(new FocusListener() {
 			
 			@Override
@@ -208,6 +251,7 @@ public class Settings extends JFrame {
 			public void focusGained(FocusEvent e) {
 				update_pictures();
 			}
+			
 		});
 		
 		bilderPopup=new PopupMenu();
@@ -225,7 +269,7 @@ public class Settings extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				switch(e.getActionCommand()) {
 				case "update":
-					new UpdatePicturesTask("");
+					new UpdatePicturesTask();
 					break;
 				case "delete":
 					Utils.deleteSelectedPictures(bilder.getSelectedItems());
@@ -260,6 +304,76 @@ public class Settings extends JFrame {
 		
 		bilder.add(bilderPopup);
 		
+		
+		Panel misc = new Panel();
+		misc.setBackground(new Color(238, 238, 238));
+		tabbedPane.addTab("Misc", null, misc, null);
+		
+		client_select = new JComboBox<String>();
+		client_select.setFont(UIManager.getFont("Button.font"));
+				
+		JLabel client_label = new JLabel("Mandant:");
+		client_label.setHorizontalAlignment(SwingConstants.RIGHT);
+		
+		client_info = new JTextField();
+		client_info.setEditable(false);
+		client_info.setColumns(10);
+		GroupLayout gl_misc = new GroupLayout(misc);
+		gl_misc.setHorizontalGroup(
+			gl_misc.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_misc.createSequentialGroup()
+					.addGap(18)
+					.addComponent(client_label, GroupLayout.PREFERRED_SIZE, 61, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(client_select, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.UNRELATED)
+					.addComponent(client_info, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+					.addContainerGap())
+		);
+		gl_misc.setVerticalGroup(
+			gl_misc.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_misc.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
+						.addComponent(client_select, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(client_info, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+						.addComponent(client_label))
+					.addContainerGap(438, Short.MAX_VALUE))
+		);
+		misc.setLayout(gl_misc);
+		
+		misc.addComponentListener(new ComponentListener() {
+			
+			@Override
+			public void componentShown(ComponentEvent e) {
+				update_clients();
+			}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {
+			}
+			
+			@Override
+			public void componentHidden(ComponentEvent e) {
+			}
+			
+		});
+		
+		client_select.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if(e.getStateChange()==ItemEvent.SELECTED) {
+					client_selected_index=client_select.getSelectedIndex();
+				}
+			}
+			
+		});
+		
 		panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.fill = GridBagConstraints.HORIZONTAL;
@@ -271,6 +385,7 @@ public class Settings extends JFrame {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		
 		label_4 = new Label("Geschäftsjahr:");
+		label_4.setAlignment(Label.RIGHT);
 		panel.add(label_4);
 		
 		mesoyear_field = new TextField();
@@ -294,6 +409,7 @@ public class Settings extends JFrame {
 		password_field.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		
 		panel_1 = new JPanel();
+		panel_1.setBackground(new Color(238, 238, 238));
 		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
 		gbc_panel_1.anchor = GridBagConstraints.SOUTHEAST;
 		gbc_panel_1.gridx = 0;
@@ -388,9 +504,39 @@ public class Settings extends JFrame {
 			
 			@Override
 			public void windowActivated(WindowEvent e) {
-				update_pictures();
+				tabbedPane.setSelectedIndex(0);
+				update_fields();
 			}
 		});
+		
+	}
+	
+	private void update_clients() {
+		String query="SELECT c000 AS name,c001 AS client,c003 AS city,c004 AS street,c006 AS plz,mesocomp,mesoyear,mesoprim FROM dbo.t001;";
+		int index=client_selected_index;
+		
+		new SimpleResultQuery(query,Tasks.VARIOUS,10l) {
+			
+			@Override
+			public void failed(ResultSet result) {
+				Logger.$("Mandanten konnten nicht gelesen werden.");
+			}
+			
+			@Override
+			public void completed(ResultSet result) {
+				client_select.removeAllItems();
+				try {
+					while(result.next()) {
+						client_select.addItem(result.getString("mesocomp"));
+					}
+				} catch (SQLException e) {
+					Logger.$(e);
+				}
+				client_selected_index=index;
+				client_select.setSelectedIndex(client_selected_index);
+			}
+			
+		};
 		
 	}
 	
@@ -403,36 +549,36 @@ public class Settings extends JFrame {
 	}
 	
 	private void update_config() {
-		Config.data.setHttp_string(http_string_field.getText());
-		Config.data.setConnection_string(connection_string_field.getText());
-		Config.data.setUsername(benutzer_field.getText());
-		Config.data.setPassword(password_field.getText());
-		Config.data.setMeso_year(mesoyear_field.getText());
-		Config.data.setWinlineQuery(sql_wl_zu_xtc.getText());
-		Config.data.setUpdatesQuery(sql_find_changed.getText());
-		Config.data.setVerifyQuery(sql_update_local.getText());
-		Config.data.setStapelpreiseQuery("");
-		Config.data.setDeletesQuery(sql_find_deletes.getText());
-		Config.data.setInsertsQuery(sql_find_inserts.getText());
-		Config.data.setKatalog(katalog.getText());
-		Config.data.setAutoUpdate(autoupdate.getState());
-		Config.data.setUpdateInterval(this.upd_inverval_value.getText());
+		Config.data.http_string(http_string_field.getText());
+		Config.data.connection_string(connection_string_field.getText());
+		Config.data.username(benutzer_field.getText());
+		Config.data.password(password_field.getText());
+		Config.data.meso_year(mesoyear_field.getText());
+		Config.data.winline_query(sql_wl_zu_xtc.getText());
+		Config.data.updates_query(sql_find_changed.getText());
+		Config.data.verify_query(sql_update_local.getText());
+		Config.data.stapelpreise_query("");
+		Config.data.deletes_query(sql_find_deletes.getText());
+		Config.data.inserts_query(sql_find_inserts.getText());
+		Config.data.katalogs(katalog.getText());
+		Config.data.auto_update(autoupdate.getState());
+		Config.data.update_interval(this.upd_inverval_value.getText());
 	}
 	
 	private void update_fields() {
-		http_string_field.setText(Config.data.getHttp_string());
-		connection_string_field.setText(Config.data.getConnection_string());
-		benutzer_field.setText(Config.data.getUsername());
-		password_field.setText(Config.data.getPassword());
-		mesoyear_field.setText(Config.data.getMeso_year());
-		sql_wl_zu_xtc.setText(Config.data.getWinlineQuery());
-		sql_find_changed.setText(Config.data.getUpdatesQuery());
-		sql_find_inserts.setText(Config.data.getInsertsQuery());
-		sql_find_deletes.setText(Config.data.getDeletesQuery());
-		sql_update_local.setText(Config.data.getVerifyQuery());
-		katalog.setText(Config.data.getKatalog());
-		autoupdate.setState(Config.data.getAutoUpdate());
-		upd_inverval_value.setText(Integer.toString(Config.data.getUpdateInterval()));
+		http_string_field.setText(Config.data.http_string());
+		connection_string_field.setText(Config.data.connection_string());
+		benutzer_field.setText(Config.data.username());
+		password_field.setText(Config.data.password());
+		mesoyear_field.setText(Config.data.meso_year());
+		sql_wl_zu_xtc.setText(Config.data.winline_query());
+		sql_find_changed.setText(Config.data.updates_query());
+		sql_find_inserts.setText(Config.data.inserts_query());
+		sql_find_deletes.setText(Config.data.deletes_query());
+		sql_update_local.setText(Config.data.verify_query());
+		katalog.setText(Config.data.katalog());
+		autoupdate.setState(Config.data.auto_update());
+		upd_inverval_value.setText(Integer.toString(Config.data.update_interval()));
 		update_pictures();
 	}
 }
