@@ -3,8 +3,8 @@
 require('../includes/application_top_export.php');
 require(DIR_FS_INC.'xtc_try_upload.inc.php');
 
-$version_nr    ='1.06';
-$version_datum ='2025.02.05';
+$version_nr='1.06';
+$version_datum='2025.02.05';
 
 define('SWITCH_MWST',false);
 define ('LOGGER',false);
