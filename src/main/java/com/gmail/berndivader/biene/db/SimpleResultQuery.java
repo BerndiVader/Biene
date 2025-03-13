@@ -16,13 +16,13 @@ ResultQueryTask<String>
 	
 	public SimpleResultQuery(String query, Tasks event_enum,long max_time) {
 		super(query,event_enum);
-		max_minutes(max_time);
+		max_seconds(max_time);
 		this.execute();
 	}
 	
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=max;
+	protected void max_seconds(long max) {
+		this.max_seconds=max;
 	}
 
 }

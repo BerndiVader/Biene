@@ -21,14 +21,17 @@ public class SteuercodeQuery extends SimpleResultQuery {
 		try {
 			if(result!=null&&result.first()) {
 				code=result.getInt(1);
+				switch(code) {
+					case 10:
+						code=3;
+						break;
+					case 15:
+						code=4;
+						break;
+				}
 			}
 		} catch(SQLException e) {
 			Logger.$(e,false,true);
-		}
-		if(code==10) {
-			code=3;
-		} else if(code==15) {
-			code=4;
 		}
 	}
 	
@@ -36,5 +39,10 @@ public class SteuercodeQuery extends SimpleResultQuery {
 	public void failed(ResultSet result) {
 		Logger.$("Failed to get Steuercode for: "+this.code);
 	}
+
+	@Override
+	protected void max_seconds(long max) {
+		max_seconds=15l;
+ 	}
 
 }

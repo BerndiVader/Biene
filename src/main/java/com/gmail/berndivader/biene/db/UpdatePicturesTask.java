@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.http.post.PostImageUpload;
-import com.gmail.berndivader.biene.http.post.PostProcessImages;
+import com.gmail.berndivader.biene.http.post.PostProcessImagesSync;
 
 public 
 class 
@@ -17,16 +17,16 @@ QueryBatchTask
 	
 	static String start_info="-- Starte Bilder-Update Task %s...";
 	static String scheduled_info="-- Scheduled Bilder-Update Task %s...";
-	static String ende_info="-- Beende Bilder-Update Task %s.";
-	static String ende_error="-- Bilder-Update Task %s erfolgreich aber fehlerhaft.";
-	static String ende_ok="-- Bilder-Update Task %s erfolgreich.";
+	static String ende_error="-- Bilder-Update Task %s abgeschlossen aber fehlerhaft.";
+	static String ende_ok="-- Bilder-Update Task %s erfolgreich beendet.";
 
 	public UpdatePicturesTask() {
-		super("",1);
+		super(1);
 		
 		this.add();
 		Logger.$(String.format(scheduled_info,this.uuid.toString()),false,false);
 	}
+	
 	
 	@Override
 	public Boolean call() throws Exception {
@@ -38,17 +38,17 @@ QueryBatchTask
 		File[]files=folder.listFiles();
 		for(File file:files) {
 			PostImageUpload upload=new PostImageUpload(Config.data.http_string(),file);
-			upload.latch.await(upload.max_minutes,TimeUnit.MINUTES);
+			upload.latch.await(upload.max_seconds,TimeUnit.SECONDS);
 			failed=upload.failed;
 		}
 		
 		boolean repeat=true;
 		while(repeat) {
-			PostProcessImages process=new PostProcessImages(Config.data.http_string());
-			process.latch.await(process.max_minutes,TimeUnit.MINUTES);
-			repeat=process.more;
-			if(process.failed) {
-				failed=true;
+			PostProcessImagesSync process=new PostProcessImagesSync(Config.data.http_string());
+			if(process.join()) {
+				if(process.failed) break;
+				repeat=process.more;
+			} else {
 				break;
 			}
 		}
@@ -59,7 +59,6 @@ QueryBatchTask
 			completed(null);
 		}
 		
-		Logger.$(String.format(ende_info,this.uuid.toString()),false,false);
 		latch.countDown();
 		return true;
 	}
@@ -75,11 +74,11 @@ QueryBatchTask
 	}
 
 	/**
-	 * Worker timeout to 10 minutes.
+	 * Worker timeout to 3 minutes.
 	 */
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=10l;
+	protected void max_seconds(long max) {
+		this.max_seconds=3l*60l;
 	}
 
 }

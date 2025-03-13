@@ -10,9 +10,9 @@ import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.enums.Action;
-import com.gmail.berndivader.biene.http.post.PostImportCSV;
+import com.gmail.berndivader.biene.http.post.PostImportCSVSync;
 import com.gmail.berndivader.biene.http.post.PostUploadCSV;
-import com.gmail.berndivader.biene.http.post.PostValidateImageFile;
+import com.gmail.berndivader.biene.http.post.PostValidateImageFileSync;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
 import com.gmail.berndivader.biene.rtf2html.RtfReader;
 
@@ -30,14 +30,21 @@ QueryBatchTask
 	private RtfReader rtf_reader;
 	private RtfHtml rtf_html;
 	
-	public UpdateShopTask() {
+	private boolean withImageUpdate;
+	
+	public UpdateShopTask(boolean withImageUpdate) {
 		super(Config.data.winline_query());
 		
 		rtf_reader=new RtfReader();
 		rtf_html=new RtfHtml();
+		this.withImageUpdate=withImageUpdate;
 		
 		this.add();
 		Logger.$(String.format(SCHEDULED_INFO,this.uuid.toString()),false,false);
+	}
+	
+	public UpdateShopTask() {
+		this(true);
 	}
 	
 	@Override
@@ -110,13 +117,12 @@ QueryBatchTask
 				if(csv_file!=null&&csv_file.exists()) {
 					String file_name=csv_file.getName();
 					PostUploadCSV upload=new PostUploadCSV(Config.data.http_string(),csv_file);
-					upload.latch.await(upload.max_minutes,TimeUnit.MINUTES);
+					upload.latch.await(upload.max_seconds,TimeUnit.SECONDS);
 					if(!upload.failed) {
-						PostImportCSV csv_import=new PostImportCSV(Config.data.http_string(),file_name);
-						csv_import.latch.await(3,TimeUnit.MINUTES);
-						if(!csv_import.failed) {
+						PostImportCSVSync csv_import=new PostImportCSVSync(Config.data.http_string(),file_name);
+						if(csv_import.join()&&!csv_import.failed) {
 							SimpleQuery query=new SimpleQuery(Config.data.verify_query());
-							query.latch.await(query.max_minutes,TimeUnit.MINUTES);
+							query.latch.await(query.max_seconds,TimeUnit.SECONDS);
 						}
 					} else {
 						Logger.$("-- Upload csv file failed", true);
@@ -133,7 +139,9 @@ QueryBatchTask
 			this.failed(null);
 		}
 		
-		new UpdatePicturesTask();
+		if(withImageUpdate) {
+			new UpdatePicturesTask();
+		}
 		this.took();
 		latch.countDown();
 		return true;
@@ -141,7 +149,7 @@ QueryBatchTask
 	
 	private void validateImage(String image_name) {
         if(image_name!=null&&image_name.length()>0) {
-        	new PostValidateImageFile(Config.data.http_string(),image_name);
+        	new PostValidateImageFileSync(Config.data.http_string(),image_name);
         }
 	}
 
@@ -155,11 +163,11 @@ QueryBatchTask
 	}
 
 	/**
-	 * Worker timeout to 5 minutes.
+	 * Worker timeout to 3 minutes.
 	 */
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=5l;
+	protected void max_seconds(long max) {
+		this.max_seconds=3l*60l;
 	}
 	
 }

@@ -3,8 +3,9 @@ package com.gmail.berndivader.biene.http.post;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
-public 
-class 
+public
+abstract
+class
 PostSimple 
 extends
 PostTask
@@ -16,18 +17,13 @@ PostTask
 	}
 
 	@Override
-	public void _completed(HttpResponse response) {
-		
-	}
+	public abstract void _completed(HttpResponse response);
 
 	@Override
-	public void _failed(HttpResponse response) {
-	}
+	public abstract void _failed(HttpResponse response);
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=max;
-	}
+	protected abstract void max_seconds(long max);
 
 
 }

@@ -1,6 +1,5 @@
 package com.gmail.berndivader.biene.http.post;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
@@ -13,7 +12,6 @@ import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
-import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
@@ -28,16 +26,15 @@ PostTask
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 		builder.addPart("file_name",new StringBody(file_name,ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("user",new StringBody(Config.data.shop_user(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody(Tasks.HTTP_POST_IMPORT_CSV_FILE.action(),ContentType.MULTIPART_FORM_DATA));
 		entity=builder.build();
 		post.setEntity(entity);
 		start();
 		
 	}
+	
 	public PostImportCSV(String url, HttpEntity entity) {
-		super(url, entity);
+		super(url,entity);
 		start();
 	}
 
@@ -45,7 +42,7 @@ PostTask
 	public void _completed(HttpResponse response) {
 		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
-			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
+			Map<String,String>result=Utils.XML.map(xml);
 			Logger.$("CSV-Import von "+result.get("FILE_NAME")+" "+result.get("MESSAGE"),false,true);
 			if(result.get("MESSAGE")==null||!result.get("MESSAGE").equals("OK")) {
 				Logger.$("CSV-Import hat mit einem Fehler geantwortet.",false,true);
@@ -63,8 +60,8 @@ PostTask
 		failed=true;
 	}
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=2l;
+	protected void max_seconds(long max) {
+		max_seconds=2l*60l;
 	}
 
 }

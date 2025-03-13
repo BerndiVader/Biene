@@ -68,13 +68,13 @@ public class ValidatePicture extends ResultQueryTask<String> {
 		return result;
 	}
 	
-	void adjustJpeg() throws IOException {
+	private void adjustJpeg() throws IOException {
 		File file=new File(Utils.working_dir+"/Bilder/"+this.fname);
 		if(file.exists()) {
 			if(file.length()>0l) {
 				JPEGImageWriteParam param=new JPEGImageWriteParam(Locale.GERMAN);
 				param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-				param.setCompressionQuality(0.75f);
+				param.setCompressionQuality(0.85f);
 				BufferedImage image=ImageIO.read(file);
 				final ImageWriter writer=ImageIO.getImageWritersByFormatName("jpg").next();
 				writer.setOutput(new FileOutputStream(file));
@@ -84,8 +84,8 @@ public class ValidatePicture extends ResultQueryTask<String> {
 	}
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=max;
+	protected void max_seconds(long max) {
+		this.max_seconds=max;
 	}
 	
 }

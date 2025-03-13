@@ -1,6 +1,5 @@
 package com.gmail.berndivader.biene.http.post;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
@@ -19,7 +18,7 @@ PostTask
 
 	public PostPictureCreate(String url, HttpEntity entity) {
 		super(url,entity);
-		
+
 		this.start();
 	}
 
@@ -27,7 +26,7 @@ PostTask
 	public void _completed(HttpResponse response) {
 		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
-			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
+			Map<String,String>result=Utils.XML.map(xml);
 			Utils.XML.printOut("",xml.getChildNodes());
 			Logger.$(result.get("CODE")+":"+result.get("MESSAGE")+":"+result.get("ACTION"),false,false);
 		} else {
@@ -42,8 +41,8 @@ PostTask
 	}
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=1l;
+	protected void max_seconds(long max) {
+		max_seconds=60l;
 	}
 
 }

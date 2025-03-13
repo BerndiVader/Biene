@@ -13,8 +13,8 @@ QueryTask
 	}
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=max;
+	protected void max_seconds(long max) {
+		this.max_seconds=max;
 	}
 
 	@Override

@@ -1,20 +1,19 @@
 package com.gmail.berndivader.biene.http.post;
 
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
+import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.Helper;
 
@@ -39,30 +38,34 @@ IPostTask
 	public boolean failed;
 	
 	public PostTask(String url) {
-		super();
-		if(!Helper.client.isRunning()) Helper.client.start();
-		failed=false;
-		this.url=url;
-		this.command=Tasks.VARIOUS;
-		latch=new CountDownLatch(1);
-		post=new HttpPost(url);
+		this(url,null,1);
 	}
 	
 	public PostTask(String url,HttpEntity entity) {
+		this(url,entity,1);
+	}
+	
+	public PostTask(String url,HttpEntity entity,int latchCount) {
 		super();
 		if(!Helper.client.isRunning()) Helper.client.start();
 		failed=false;
 		this.url=url;
 		this.entity=entity;
 		this.command=Tasks.VARIOUS;
-		latch=new CountDownLatch(1);
+		latch=new CountDownLatch(latchCount);
 		post=new HttpPost(url);
-		post.setEntity(this.entity);
+		if(Config.data.cf_enabled()) {
+			post.setHeader("CF-Access-Client-Id",Config.data.cf_client());
+			post.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
+		}
+		post.setHeader("user",Config.data.shop_user());
+		post.setHeader("password",Config.data.shop_password());
+		if(entity!=null) post.setEntity(this.entity);
 	}
 
 	protected void start() {
 		if(Helper.client.isRunning()) {
-			Helper.executor.submit(this);
+			future=Helper.executor.submit(this);
 		} else {
 			Logger.$(this.command+" failed. http_client not running.",false,false);
 			failed=true;
@@ -72,9 +75,17 @@ IPostTask
 	
 	@Override
 	public HttpResponse call() throws Exception {
-		future=this.execute(post);
+		Future<HttpResponse>future=this.execute(post);
+		HttpResponse response=null;
+		
+		try {
+			response=future.get(max_seconds,TimeUnit.SECONDS);
+		} catch(TimeoutException e) {
+			future.cancel(true);
+		}
+		
 		this.took();
-		return future.get(10,TimeUnit.MINUTES);
+		return response;
 	}
 	
 	protected Future<HttpResponse> execute(HttpPost post) {
@@ -102,19 +113,6 @@ IPostTask
 				latch.countDown();
 			}
 		});		
-	}
-	
-	protected static Map<String,String>mapNodes(String node_name,NodeList nodes,Map<String,String>result) {
-		int size=nodes.getLength();
-		for(int i1=0;i1<size;i1++) {
-			Node node=nodes.item(i1);
-			if(node.hasChildNodes()) {
-				mapNodes(node.getNodeName(),node.getChildNodes(),result);
-			} else if(node.getNodeType()==3) {
-				result.put(node_name,node.getTextContent().trim());
-			};
-		}
-		return result;
 	}
 	
 }

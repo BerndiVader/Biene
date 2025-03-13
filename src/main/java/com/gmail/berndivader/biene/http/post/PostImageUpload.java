@@ -6,23 +6,22 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.ContentType;
-import org.apache.http.nio.client.methods.ZeroCopyConsumer;
 import org.apache.http.nio.client.methods.ZeroCopyPost;
+import org.apache.http.nio.protocol.BasicAsyncResponseConsumer;
 import org.w3c.dom.Document;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
+import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.Helper;
 
@@ -32,16 +31,13 @@ PostImageUpload
 extends
 PostTask
 {
-	private File response_file,file;
+	private File file;
 	private ZeroCopyPost post;
-	private ZeroCopyConsumer<HttpResponse>consumer;
 
-	public PostImageUpload(String url, File file) throws FileNotFoundException {
+	public PostImageUpload(String url,File file) throws FileNotFoundException {
 		super(url,null);
 		
 		this.file=file;
-		response_file=new File("_tmp");
-		response_file.deleteOnExit();
 		
 		String file_name=file.getName();
 				
@@ -52,29 +48,21 @@ PostTask
 			file_name=parse[0]+".jpg";
 		}
 		
-		post=new ZeroCopyPost(url+"&action="+Tasks.HTTP_POST_IMAGE_UPLOAD.action()+"&file_name="+file_name+"&file_size="+file.length(),file,ContentType.IMAGE_JPEG) {
+		post=new ZeroCopyPost(url+Tasks.HTTP_POST_IMAGE_UPLOAD.command()+"&file_name="+file_name+"&file_size="+file.length(),file,ContentType.IMAGE_JPEG) {
 			
 			@Override
 			protected HttpEntityEnclosingRequest createRequest(final URI requestURI,final HttpEntity entity) {
-				return super.createRequest(requestURI,entity);
-			}
-			
-		};
-						
-		consumer=new ZeroCopyConsumer<HttpResponse>(response_file) {
-			
-			@Override
-			protected HttpResponse process(HttpResponse response, File file, ContentType content_type) throws Exception {
-				
-				if(response.getStatusLine().getStatusCode()!=HttpStatus.SC_OK) {
-					failed=true;
-					Logger.$(PostImageUpload.this.command+" failed.\nFehlermeldung: "+response.getStatusLine(),false,true);
-					throw new ClientProtocolException("Upload failed:"+response.getStatusLine());
-				} else {
-					failed=false;
+				HttpEntityEnclosingRequest request=super.createRequest(requestURI,entity);
+				if(Config.data.cf_enabled()) {
+					request.setHeader("CF-Access-Client-Id",Config.data.cf_client());
+					request.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
 				}
-				return response;
+				request.setHeader("user",Config.data.shop_user());
+				request.setHeader("password",Config.data.shop_password());
+								
+				return request;
 			}
+			
 		};
 		
 		this.start();
@@ -84,69 +72,71 @@ PostTask
 	public HttpResponse call() throws Exception {
 		Future<HttpResponse>future=execute(post);
 		this.took();
-		return future.get(10,TimeUnit.MINUTES);
+		try {
+			return future.get(max_seconds,TimeUnit.SECONDS);			
+		} catch(TimeoutException e) {
+			future.cancel(true);
+		}
+		return null;
 	}
 	
 	protected Future<HttpResponse>execute(ZeroCopyPost post) {
 		
-		return Helper.client.execute(post,consumer,new FutureCallback<HttpResponse>() {
+		return Helper.client.execute(post,new BasicAsyncResponseConsumer(),new FutureCallback<HttpResponse>() {
 			
 			@Override
 			public void failed(Exception e) {
-				PostImageUpload.this.failed=true;
+				failed=true;
 				Logger.$(e,false,true);
-				Logger.$(PostImageUpload.this.command+" failed.\nFehlermeldung: "+e.getMessage(),false,false);
-				_failed(null);
+				Logger.$(command+" failed.\nFehlermeldung: "+e.getMessage(),false,false);
 				latch.countDown();
 			}
 			@Override
 			public void completed(HttpResponse respond) {
-				if (failed) {
-					_failed(null);
-				} else {
+				if(!failed) {
 					_completed(respond);
 				}
 				latch.countDown();
 			}
 			@Override
 			public void cancelled() {
-				PostImageUpload.this.failed=true;
-				Logger.$(PostImageUpload.this.command+" cancelled",false,false);
-				_failed(null);
+				failed=true;
+				Logger.$(command+" cancelled",false,false);
 				latch.countDown();
 			}
-		});		
+		});
 	}
 
 	@Override
 	public void _completed(HttpResponse response) {
 		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
-			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
-			String file_name=result.get("OUTCOME");
-			Logger.$("Image-Upload von "+file_name+" "+result.get("MESSAGE"),false,false);
-			try {
-				Files.delete(this.file.toPath());
-			} catch (IOException e) {
-				Logger.$(e);
+			HashMap<String,String>result=Utils.XML.map(xml);
+			if(Utils.XML.isError(result)) {
+				Utils.XML.printError(result);
+				failed=true;
+			} else {
+				String file_name=result.get("OUTCOME");
+				Logger.$("Image-Upload von "+file_name+" "+result.get("MESSAGE"),false,false);
+				try {
+					Files.delete(this.file.toPath());
+				} catch (IOException e) {
+					Logger.$(e);
+				}
 			}
 		} else {
+			this.failed=true;
 			Logger.$("Image-Upload hat ungewöhnlich geantwortet.",false,true);
-			_failed(response);
 		}
-		response_file.delete();
 	}
 
 	@Override
 	public void _failed(HttpResponse response) {
-		failed=true;
-		response_file.delete();
 	}
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=3l;
-		
+	protected void max_seconds(long max) {
+		max_seconds=3l*60l;
 	}
 
 }

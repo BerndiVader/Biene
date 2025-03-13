@@ -26,6 +26,10 @@ IQueryTask<Void>
 	protected String query;
 	public Future<Boolean>future;
 	public CountDownLatch latch;
+	
+	public QueryBatchTask(int latch) {
+		this("",latch);
+	}
 
 	public QueryBatchTask(String query, int latch) {
 		super();
@@ -40,7 +44,7 @@ IQueryTask<Void>
 	
 	public boolean batch() {
 		start_time=System.currentTimeMillis();
-		future=Helper.executor.submit(this);
+		execute();
 		return true;
 	}
 	

@@ -4,6 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -11,6 +12,7 @@ import org.apache.http.concurrent.FutureCallback;
 
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Worker;
+import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.Helper;
 
@@ -24,11 +26,11 @@ implements
 Callable<HttpResponse>,
 IGetTask
 {
-	final String url;
-	final Tasks command;
-	final CountDownLatch latch;
-	final HttpGet request;
+	protected final String url;
+	protected final Tasks command;
+	protected final HttpGet request;
 	
+	public final CountDownLatch latch;
 	public Future<HttpResponse>future;
 	public boolean failed;
 	
@@ -38,7 +40,14 @@ IGetTask
 		this.url=url;
 		this.command=command;
 		latch=new CountDownLatch(1);
-		request=new HttpGet(url+command.command());
+		request=new HttpGet(url.concat(command.command()));
+		if(Config.data.cf_enabled()) {
+			request.setHeader("CF-Access-Client-Id",Config.data.cf_client());
+			request.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
+		}
+		request.setHeader("X-Authorization","Bearer ".concat(Config.data.bearer_token()));
+		request.setHeader("user",Config.data.shop_user());
+		request.setHeader("password",Config.data.shop_password());
 		if(Helper.client.isRunning()) {
 			future=Helper.executor.submit(this);
 		} else {
@@ -50,7 +59,13 @@ IGetTask
 	@Override
 	public HttpResponse call() throws Exception {
 		Future<HttpResponse>future=this.execute(request);
-		return future.get(15,TimeUnit.SECONDS);
+		try {
+			return future.get(15,TimeUnit.SECONDS);
+		} catch(TimeoutException e) {
+			future.cancel(true);
+			Logger.$("Task timeout.");
+		}
+		return null;
 	}
 	
 	protected Future<HttpResponse>execute(HttpGet request){
@@ -59,7 +74,7 @@ IGetTask
 			public void failed(Exception e) {
 				GetTask.this.failed=true;
 				Logger.$(e,false,false);
-				Logger.$(request.getRequestLine()+" failed",false,false);
+				Logger.$(command.action().concat(" failed."),false,false);
 				latch.countDown();
 			}
 			@Override
@@ -69,8 +84,8 @@ IGetTask
 			}
 			@Override
 			public void cancelled() {
-				Logger.$(request.getRequestLine()+" cancelled",false,false);
-				GetTask.this.failed=false;
+				GetTask.this.failed=true;
+				Logger.$(command.action().concat(" cancelled."),false,false);
 				latch.countDown();
 			}
 		});

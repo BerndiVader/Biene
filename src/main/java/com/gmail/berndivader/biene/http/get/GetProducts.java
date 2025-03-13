@@ -3,6 +3,7 @@ package com.gmail.berndivader.biene.http.get;
 import java.io.File;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -38,9 +39,15 @@ GetTask
 	@Override
 	public HttpResponse call() throws Exception {
 		Future<HttpResponse>future=this.execute(request);
-		latch.await(10,TimeUnit.MINUTES);
+		latch.await(max_seconds,TimeUnit.SECONDS);
 		this.took();
-		return future.get();
+		try {
+			return future.get(max_seconds,TimeUnit.SECONDS);
+		} catch(TimeoutException e) {
+			future.cancel(true);
+			Logger.$(e);
+		}
+		return null;
 	}
 	
 	@Override
@@ -111,8 +118,7 @@ GetTask
 	}
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=3l;
-		
+	protected void max_seconds(long max) {
+		max_seconds=3l*60l;
 	}
 }

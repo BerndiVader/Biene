@@ -1,6 +1,5 @@
 package com.gmail.berndivader.biene.http.post;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
@@ -10,9 +9,9 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.StringBody;
 import org.w3c.dom.Document;
 
-import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
+import com.gmail.berndivader.biene.Utils.XML.CODES;
 import com.gmail.berndivader.biene.enums.Tasks;
 
 public 
@@ -33,20 +32,19 @@ PostTask
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 		builder.addPart("image_name",new StringBody(image_name,ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("user",new StringBody(Config.data.shop_user(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody(Tasks.HTTP_POST_IMAGE_VALIDATE_FILE.action(),ContentType.MULTIPART_FORM_DATA));
 		
-		this.post.setEntity(builder.build());
-		this.start();
+		post.setEntity(builder.build());
+		start();
 	}
 
 	@Override
 	public void _completed(HttpResponse response) {
 		Document xml=Utils.XML.getXMLDocument(response);
 		if(xml!=null) {
-			Map<String,String>result=mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
-			if(result.get("CODE").equals("-1")) {
+			Map<String,String>result=Utils.XML.map(xml);
+			CODES code=CODES.from(result.get("CODE"));
+			if(code.equals(CODES.FAILED)) {
 				Logger.$("Achtung! Keine Bild-Datei "+name+" am Server gefunden.",false,false);
 			}
 		} else {
@@ -59,8 +57,8 @@ PostTask
 	}
 
 	@Override
-	protected void max_minutes(long max) {
-		this.max_minutes=1l;
+	protected void max_seconds(long max) {
+		this.max_seconds=60l;
 	}
 
 
