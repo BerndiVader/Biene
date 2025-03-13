@@ -11,19 +11,19 @@ Worker
 	protected long start_time;
 	
 	/**
-	 * Max minutes the task is allowed to run until timeout.
+	 * Max seconds the task is allowed to run until timeout.
 	 */
-	public long max_minutes;
+	public long max_seconds;
 	private final static String message=" ms";
 	
 	public Worker() {
 		start_time=System.currentTimeMillis();
-		max_minutes=1l;
+		max_seconds(60l);
 	}
 	
 	public Worker(long max_time) {
 		start_time=System.currentTimeMillis();
-		this.max_minutes=max_time;
+		this.max_seconds=max_time;
 	}
 	
 	
@@ -43,5 +43,6 @@ Worker
 		return System.currentTimeMillis()-start_time;
 	}
 	
-	protected abstract void max_minutes(long max);
+	protected abstract void max_seconds(long max);
+	
 }
