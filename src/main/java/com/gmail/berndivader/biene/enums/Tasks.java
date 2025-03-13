@@ -31,7 +31,7 @@ Tasks
 	INVALID("invalid");
 	
 
-	private static final String GET="&action=";
+	private static final String GET="?action=";
 	private String command;
 	
 	private Tasks(String command) {
@@ -45,6 +45,15 @@ Tasks
 	public String command() {
 		return GET.concat(command);
 	}
+	
+	/**
+	 * Get Task for String name. Ignores case sensitive.<br>
+	 * Throws IllegalArgumentException if name not in Enumeration.
+	 * 
+	 * @param name
+	 * @return Task Object for string name.
+	 * 
+	 */
 	
 	public static Tasks valueOfIgnoreCase(String name) {
 		for (Tasks e:Tasks.values()) {

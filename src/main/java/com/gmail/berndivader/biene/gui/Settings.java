@@ -535,6 +535,11 @@ public class Settings extends JFrame {
 				client_selected_index=index;
 				client_select.setSelectedIndex(client_selected_index);
 			}
+
+			@Override
+			protected void max_seconds(long max) {
+				max_seconds=10l;
+			}
 			
 		};
 		

@@ -60,6 +60,7 @@ JFrame {
 	public JPanel contentPane;
 	
 	public static Main frame;
+	public static final String APP_NAME="WinLine2Modified";
 	public static Image icon_image;
 	
 	public Settings settings;
@@ -92,7 +93,7 @@ JFrame {
 		exit=false;
 		setType(Type.NORMAL);
 		setFont(new Font("Tahoma", Font.PLAIN, 12));
-		setTitle("WinLine2Modified");
+		setTitle(APP_NAME);
 		frame=this;
 		setBounds(100, 100, 603, 560);
 		contentPane = new JPanel();

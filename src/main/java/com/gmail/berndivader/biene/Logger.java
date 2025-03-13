@@ -28,12 +28,23 @@ Logger
 		}
 	}
 	
-	public static void $(String text,boolean balloned,boolean http_log) {
+	/**
+	 * 
+	 * Write into CLI or into Windows.
+	 * if ballooned is true, a balloon popup and or log on HTTP server.
+	 * 
+	 * @param Message
+	 * @param balloned, default:false
+	 * @param http_log, default:false
+	 * 
+	 * @return void
+	 */
+	public static void $(String text,boolean ballooned,boolean http_log) {
 		if(http_log&&Helper.client.isRunning()) Utils.writeLog(text);
 		if(!Biene.no_gui) {
-			awt_log(text,balloned,http_log);
+			awt_log(text,ballooned,http_log);
 		} else {
-			cli_log(text,balloned,http_log);
+			cli_log(text,ballooned,http_log);
 		}
 	}
 	
@@ -41,15 +52,15 @@ Logger
 		$(text,false,false);
 	}
 	
-	public static void $(String text,boolean balloned) {
-		$(text,balloned,false);
+	public static void $(String text,boolean ballooned) {
+		$(text,ballooned,false);
 	}
 	
-	public static void $(Exception e) {
+	public static void $(Throwable e) {
 		$(e,false,false);
 	}
 	
-	public static void $(Exception e,boolean balloned,boolean http_log) {
+	public static void $(Throwable e,boolean ballooned,boolean http_log) {
 		StringWriter sw=new StringWriter();
 		PrintWriter pw=new PrintWriter(sw);
 		e.printStackTrace(pw);
@@ -60,7 +71,7 @@ Logger
 			Logger.$(e1);
 		}
 		
-		$("ERROR: ".concat(e.getMessage()),false,false);
+		$("ERROR: ".concat(e.getMessage()),ballooned,http_log);
 		
 		pw.close();
 		try {
@@ -70,7 +81,7 @@ Logger
 		}
 	}
 	
-	static void awt_log(String text,boolean balloned,boolean http_log) {
+	static void awt_log(String text,boolean ballooned,boolean http_log) {
 		if(text==null||text.isEmpty()) return;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -84,7 +95,7 @@ Logger
 					Main.frame.log_area.setText(trimmed);
 				}
 				Main.frame.log_area.append(text.concat("\n"));
-				if(balloned) Main.frame.tray_icon.displayMessage("Info",text,MessageType.NONE);
+				if(ballooned) Main.frame.tray_icon.displayMessage("Info",text,MessageType.NONE);
 			}
 		});
 	}
