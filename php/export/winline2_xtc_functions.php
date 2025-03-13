@@ -1,50 +1,51 @@
 <?php
 
-function SendScriptVersion()
+function SendScriptVersion(string $action)
 {
-  global $_GET,$version_nr,$version_datum;
-
+  global $version_nr,$version_datum;
   $schema='<?xml version="1.0" encoding="'.CHARSET.'"?>'."\n".
           '<STATUS>'."\n".
           '<STATUS_DATA>'."\n".
-          '<ACTION>'.$_GET['action'] .'</ACTION>'."\n".
-          '<CODE>'.'111'.'</CODE>'."\n".
+          '<ACTION>'.$action.'</ACTION>'."\n".
+          '<CODE>'.(string)Codes::VERSION->value.'</CODE>'."\n".
           '<SCRIPT_VER>'.$version_nr.'</SCRIPT_VER>'."\n".
           '<SCRIPT_DATE>'.$version_datum.'</SCRIPT_DATE>'."\n".
           '</STATUS_DATA>'."\n".
           '</STATUS>'."\n\n";
+  SendXMLHeader();
   echo $schema;
 }
 
 //--------------------------------------------------------------
 
-function print_xml_status($code,$action,$msg,$mode,$item,$value)
+function print_xml_status(Codes $c,string $action,string $msg,string $mode="",string $item_name="",string $item_value="")
 {
   $schema='<?xml version="1.0" encoding="'.CHARSET.'"?>'."\n".
             '<STATUS>'."\n".
             '<STATUS_DATA>'."\n".
-            '<CODE>'.$code.'</CODE>'."\n" .
+            '<CODE>'.(string)$c->value.'</CODE>'."\n" .
             '<ACTION>'.$action.'</ACTION>'."\n".
             '<MESSAGE>'.$msg.'</MESSAGE>'."\n";
 
-  if(strlen($mode)>0) {
+  if(!empty($mode))
+  {
     $schema.='<MODE>'.$mode.'</MODE>'."\n";
   }
-
-  if(strlen($item)>0) {
-    $schema.='<'.$item.'>'.$value.'</'.$item.'>'."\n";
+  if(!empty($item_name))
+  {
+    $schema.='<'.$item_name.'>'.$item_value.'</'.$item_name.'>'."\n";
   }
-  $schema.='</STATUS_DATA>'."\n".
-             '</STATUS>'."\n\n";
 
+  $schema.='</STATUS_DATA>'."\n".'</STATUS>'."\n\n";
+
+  SendXMLHeader();
   echo $schema;
-
   return;
 }
 
 //--------------------------------------------------------------
 
-function column_exists($table,$column)
+function column_exists(string $table,string $column)
 {
   $Table=xtc_db_query("show columns from $table LIKE '{$column}'");
   return xtc_db_fetch_row($Table)!==false;
@@ -61,47 +62,39 @@ function SendXMLHeader()
 }
 //--------------------------------------------------------------
 
-
-function SendHTMLHeader()
+function CsvFileUpload(string $action)
 {
-  header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
-  header("Cache-Control: no-cache, must-revalidate");
-  header("Pragma: no-cache");
-  header("Content-type: text/html");
-}
+  global $_GET;
 
-//--------------------------------------------------------------
-
-function ShowHTMLMenu()
-{
-  global $version_nr,$version_datum,$PHP_SELF;
-  SendHTMLHeader();
-
-?>
-
-  <html><head></head><body>
-  <h3>Winline - modified Shopanbindung</a></h3>
-  <h4>Version <?php echo $version_nr; ?> Stand : <?php echo $version_datum; ?></h4>
-  </body>
-  </html>
-
-<?php
-}
-
-//--------------------------------------------------------------
-
-function CsvFileUpload()
-{
-  global $_GET,$_POST;
+  if(!isset($_GET['file_name'])||!isset($_GET['file_size']))
+  {
+    throw new Wl2Exception("MISSING FILENAME OR FILESIZE",Codes::RUNTIME_ERROR);
+  }
 
   $file_name=$_GET['file_name'];
   $file_size=$_GET['file_size'];
 
   $putdata=fopen("php://input","r");
+  if($putdata===false)
+  {
+    throw new Wl2Exception("UNABLE TO OPEN CSV INPUT STREAM",Codes::RUNTIME_ERROR);
+  }
+
   $fp=fopen(DIR_FS_DOCUMENT_ROOT.'import/'.$file_name,"w");
+  if($fp===false)
+  {
+    fclose($putdata);
+    throw new Wl2Exception("UNABLE TO CREATE CSV OUTPUT FILE",Codes::RUNTIME_ERROR);
+  }
+
   while($data=fread($putdata,1024))
   {
-    fwrite($fp,$data);
+    if(fwrite($fp,$data)===false)
+    {
+      fclose($fp);
+      fclose($putdata);
+      throw new Wl2Exception("FAILED TO WRITE CSV OUTPUT FILE",Codes::RUNTIME_ERROR);
+    }
   }
 
   fclose($fp);
@@ -110,52 +103,83 @@ function CsvFileUpload()
 
   if($fp_size==$file_size)
   {
-    $code=0;
+    $code=Codes::OK;
     $message="OK {$file_size}:{$fp_size}";
-  } else {
-    $code = -1;
+  }
+  else
+  {
+    $code=Codes::FAILED;
     $message="FAILED {$file_size}:{$fp_size}";
   }
 
-  print_xml_status($code,$_POST['action'],$message,'','OUTCOME',$file_name);
+  print_xml_status($code,$action,$message,'','OUTCOME',$file_name);
 }
 
 //--------------------------------------------------------------
 
-function ImageUpload()
+function ImageUpload(string $action)
 {
-  global $_GET,$_POST;
+  global $_GET;
+
+  if(!isset($_GET['file_name'])||!isset($_GET['file_size']))
+  {
+    throw new Wl2Exception("MISSING FILENAME OR FILESIZE",Codes::RUNTIME_ERROR);
+  }
 
   $file_name=$_GET['file_name'];
   $file_size=$_GET['file_size'];
 
   $putdata=fopen("php://input","r");
-  $fp=fopen(DIR_FS_DOCUMENT_ROOT.'images/product_images/uploaded_images/'.$file_name, "w");
+  if($putdata===false)
+  {
+    throw new Wl2Exception("UNABLE TO OPEN IMAGE INPUT STREAM",Codes::RUNTIME_ERROR);
+  }
+
+  $fp=fopen(DIR_FS_DOCUMENT_ROOT.'images/product_images/uploaded_images/'.$file_name,"w");
+  if($fp===false)
+  {
+    fclose($putdata);
+    throw new Wl2Exception("UNABLE TO CREATE IMAGE OUTPUT FILE",Codes::RUNTIME_ERROR);
+  }
+
   while($data=fread($putdata,1024))
   {
-    fwrite($fp,$data);
+    if(fwrite($fp,$data)===false)
+    {
+      fclose($fp);
+      fclose($putdata);
+      throw new Wl2Exception("FAILED TO WRITE IMAGE OUTPUT FILE",Codes::RUNTIME_ERROR);
+    }
   }
 
   fclose($fp);
   fclose($putdata);
   $fp_size=filesize(DIR_FS_DOCUMENT_ROOT.'images/product_images/uploaded_images/'.$file_name);
 
-  if($fp_size==$file_size) {
-    $code=0;
+  if($fp_size==$file_size)
+  {
+    $code=Codes::OK;
     $message="OK {$file_size}:{$fp_size}";
-  } else {
-    $code=-1;
+  }
+  else
+  {
+    $code=Codes::FAILED;
     $message="FAILED {$file_size}:{$fp_size}";
   }
 
-  print_xml_status($code,$_POST['action'],$message,'','OUTCOME',$file_name);
+  print_xml_status($code,$action,$message,'','OUTCOME',$file_name);
 }
 
 //--------------------------------------------------------------
 
-function ValidateImage()
+function ValidateImage(string $action)
 {
   global $_POST;
+
+  if(!isset($_POST['image_name']))
+  {
+    throw new Wl2Exception("MISSING IMAGENAME",Codes::RUNTIME_ERROR);
+  }  
 
   $image_name=$_POST['image_name'];
   $query="SELECT products_image, products_model FROM products WHERE products_image LIKE '{$image_name}'";
@@ -164,44 +188,55 @@ function ValidateImage()
 
   if(isset($result))
   {
-    print_xml_status("0",'','','','OUTCOME',$image_name);
+    print_xml_status(Codes::OK,$action,'','','OUTCOME',$image_name);
   }
   else
   {
-    print_xml_status("-1",'','','','OUTCOME',$image_name);
+    print_xml_status(Codes::FAILED,$action,'','','OUTCOME',$image_name);
   }
 
 }
 
 //--------------------------------------------------------------
 
-function ValidateImageFile()
+function ValidateImageFile(string $action)
 {
   global $_POST;
+
+  if(!isset($_POST['image_name']))
+  {
+    throw new Wl2Exception("MISSING IMAGENAME",Codes::RUNTIME_ERROR);
+  }  
 
   $image_name=$_POST['image_name'];
 
   if(file_exists(DIR_FS_DOCUMENT_ROOT.'images/product_images/original_images/'.$image_name))
   {
-    print_xml_status("0",'','','','OUTCOME',$image_name);
+    print_xml_status(Codes::OK,$action,'','','OUTCOME',$image_name);
   }
   else
   {
-    print_xml_status("-1",'','','','OUTCOME',$image_name);
+    print_xml_status(Codes::FAILED,$action,'','','OUTCOME',$image_name);
   }
 
 }
 
 //--------------------------------------------------------------
 
-function CsvFileImport2()
+function CsvFileImport2(string $action)
 {
-  global $_GET, $_POST;
+  global $_POST;
+
+  if(!isset($_POST['file_name']))
+  {
+    throw new Wl2Exception("MISSING FILENAME",Codes::RUNTIME_ERROR);
+  }  
+
 	$file_name=$_POST['file_name'];
   
-  require(DIR_FS_ADMIN.'/includes/classes/import.php');
-  require(DIR_FS_INC.'xtc_format_filesize.inc.php');
-  require(DIR_FS_INC.'xtc_get_customers_statuses.inc.php');
+  require DIR_FS_ADMIN.'/includes/classes/import.php';
+  require DIR_FS_INC.'xtc_format_filesize.inc.php';
+  require DIR_FS_INC.'xtc_get_customers_statuses.inc.php';
 
   define("CSV_SEPERATOR","|");
   define("CSV_TEXTSIGN","");
@@ -213,50 +248,58 @@ function CsvFileImport2()
   $mapping=$handler->map_file($map);
   $import=$handler->import($mapping);
 
-  $code=-1;
-  $message='FAILED';
-  $error='';
+  $error="";
+  $message="";
+  $code=CODES::FAILED;
 
-  if (isset($import)) 
+  $file=DIR_FS_DOCUMENT_ROOT.'import/'.$file_name;
+  if(file_exists($file)) 
+  {
+    unlink($file);
+  }
+
+  if(isset($import))
   {
     if($import[0]) 
     {
-      $code=0;
+      $code=Codes::OK;
       $message="OK";
     }
 
     if(isset($import[1])&&$import[1][0]!='')
     {
-      $code=-1;
+      $code=Codes::FAILED;
       for($i=0;$i<count($import[1]);$i++) 
       {
         $error.$import[1][$i]."-";
       }
     }
   }
-
-	$file=DIR_FS_DOCUMENT_ROOT.'import/'.$file_name;
-  if(file_exists($file)) 
-  {
-		unlink($file);
+  else
+  {  
+    throw new Wl2Exception("PHP IMPORTHANDLER FAILED TO IMPORT",CODES::RUNTIME_ERROR);
   }
-  
-	print_xml_status($code,$_POST['action'],$message,$error,'FILE_NAME',$file_name);
+
+	print_xml_status($code,$action,$message,$error,'FILE_NAME',$file_name);
   return;
 }
 
 //--------------------------------------------------------------
 
-function ImageProzess()
+function ImageProzess($action)
 {
-  global $_GET,$_POST;
+  define("DIR_FS_CATALOG_IMAGES",DIR_FS_CATALOG);
 
   define("DIR_FS_CATALOG_ORIGINAL_IMAGES",DIR_FS_CATALOG.DIR_WS_ORIGINAL_IMAGES);
   define("DIR_FS_CATALOG_INFO_IMAGES",DIR_FS_CATALOG.DIR_WS_INFO_IMAGES);
   define("DIR_FS_CATALOG_POPUP_IMAGES",DIR_FS_CATALOG.DIR_WS_POPUP_IMAGES);
   define("DIR_FS_CATALOG_THUMBNAIL_IMAGES",DIR_FS_CATALOG.DIR_WS_THUMBNAIL_IMAGES);
-  define("DIR_FS_CATALOG_IMAGES",DIR_FS_CATALOG.DIR_WS_IMAGES);
+  define("DIR_FS_CATALOG_MIDI_IMAGES",DIR_FS_CATALOG.DIR_WS_MIDI_IMAGES);
+  define("DIR_FS_CATALOG_MINI_IMAGES",DIR_FS_CATALOG.DIR_WS_MINI_IMAGES);
+
   define("DIR_FS_CATALOG_UPLOADED_IMAGES",DIR_FS_DOCUMENT_ROOT.'images/product_images/uploaded_images/');
+
+  include DIR_FS_ADMIN.'includes/classes/image_manipulator.php';
 
   $original_images=[];
   $processed_images=[];
@@ -267,60 +310,81 @@ function ImageProzess()
     mkdir(DIR_FS_CATALOG_UPLOADED_IMAGES);
   }
   $dir=dir(DIR_FS_CATALOG_UPLOADED_IMAGES);
+
+  if($dir===false)
+  {
+    throw new Wl2Exception("UPLOADED_IMAGES DIR DOES NOT EXISTS",Codes::RUNTIME_ERROR);
+  }
+
   $outcome="";
 
-  while(false!==($entry=$dir->read())) 
+  while(false!==($entry=$dir->read()))
   {
-    if($entry!="noimage.gif"&&!is_dir($entry)) 
+    if($entry!=="noimage.gif"&&!is_dir($entry)) 
     {
       $uploaded_images[]=$entry;
     }
   }
 
   $dir->close();
+  
+  $total_uploads=count($uploaded_images);
+  $uploaded_images=array_slice($uploaded_images,0,5);
   $uploads=count($uploaded_images);
   $count=0;
 
   if($uploads>0)
   {
-    foreach($uploaded_images as $picture) 
+    foreach($uploaded_images as $picture)
     {
-      $image=img_box(imagecreatefromjpeg(DIR_FS_CATALOG_UPLOADED_IMAGES.$picture),800,600);
+      $image=img_box(imagecreatefromjpeg(DIR_FS_CATALOG_UPLOADED_IMAGES.$picture),1600,1200);
       
       if($image!==null)
       {
-        imagejpeg($image,DIR_FS_CATALOG_UPLOADED_IMAGES.$picture,100);
+        imagejpeg($image,DIR_FS_CATALOG_UPLOADED_IMAGES.$picture,85);
         rename(DIR_FS_CATALOG_UPLOADED_IMAGES.$picture, DIR_FS_CATALOG_ORIGINAL_IMAGES.$picture);
 
         $products_image_name=$picture;
-        if(strlen($outcome)===0)
-        {
-          $outcome.=$products_image_name;
-        } 
-        else 
-        {
-          $outcome.=",{$products_image_name}";
-        }
+        include DIR_FS_ADMIN.'/includes/product_info_images.php';
+        include DIR_FS_ADMIN.'/includes/product_popup_images.php';
+        include DIR_FS_ADMIN.'/includes/product_thumbnail_images.php';
+        include DIR_FS_ADMIN.'/includes/product_midi_images.php';
+        include DIR_FS_ADMIN.'/includes/product_mini_images.php';
 
-        include(DIR_FS_ADMIN.'/includes/product_info_images.php');
-        include(DIR_FS_ADMIN.'/includes/product_popup_images.php');
-        include(DIR_FS_ADMIN.'/includes/product_thumbnail_images.php');
+        $outcome.="{$products_image_name} ok.\n";
         $count++;
       }
     }
-
-    if($count>0) 
-    {
-      $outcome.=" erfolgreich.";
-    } 
-    else 
-    {
-      $outcome="Keine Bilder gefunden.";
-    }
-
   }
 
-  print_xml_status("0",$_POST['action'],$uploads,'','OUTCOME',$outcome);
+  if($uploads===0)
+  {
+    $outcome="Keine Bilder zum verarbeiten vorhanden.";
+    $code=Codes::OK;
+  }
+  else if($count===$uploads&&$uploads===$total_uploads)
+  {
+    $outcome.="Alle Bilder erfolgfreich verarbeitet.";
+    $code=Codes::OK;
+  }
+  else if($count===$uploads&&$uploads<$total_uploads)
+  {
+    $renaim=$total_uploads-$count;
+    $outcome.="{$count} Bilder erfolgfreich verarbeitet.\n{$renaim} Bilder noch ausständig.";
+    $code=Codes::CONTINUE;
+  }
+  else if($count<$uploads)
+  {
+    $outcome.="Nur {$count} Bilder von {$uploads} verarbeitet da vorzeitig abgebrochen.";
+    throw new Wl2Exception($outcome,Codes::RUNTIME_ERROR);
+  }
+  else
+  {
+    throw new Wl2Exception("UNKNOWN ERROR WHILE PROCESSING UPLOADED IMAGES",Codes::RUNTIME_ERROR);
+  }
+
+  print_xml_status($code,$action,$uploads,'','OUTCOME',$outcome);
+
 }
 
 //--------------------------------------------------------------
@@ -360,12 +424,23 @@ function img_box($img, $box_w, $box_h) {
 
 //--------------------------------------------------------------
 
-function PostBieneLog()
+function PostBieneLog($action)
 {
-  global $_GET,$_POST;
+  global $_POST;
 
-  $filename=DIR_FS_DOCUMENT_ROOT.'import/biene.chk';
+  if(!isset($_POST['message']))
+  {
+    exit;
+  }
+
   $message=$_POST['message'];
+  $filename=DIR_FS_DOCUMENT_ROOT.'import/biene.chk';
+
+  if(!file_exists($filename))
+  {
+    $handle=fopen($filename,"w");
+    fclose($handle);
+  }
   
   if(is_writable($filename))
   {
@@ -373,23 +448,20 @@ function PostBieneLog()
     {
       if(!fwrite($handle,$message."\r\n"))
       {
-        print_xml_status('-1',$_POST['action'],"UNABLE TO WRITE LOG",'','OUTCOME',$message);
-        exit;
+        throw new Wl2Exception("UNABLE TO WRITE LOG",Codes::RUNTIME_ERROR);
       }
     }
     else
     {
-      print_xml_status('-1',$_POST['action'],"UNABLE TO OPEN LOG",'','OUTCOME',$message);
-      exit;
+      throw new Wl2Exception("UNABLE TO OPEN LOG",Codes::RUNTIME_ERROR);
     }
     fclose($handle);
   } 
   else 
   {
-    print_xml_status('-1',$_POST['action'],"FILE NOT WRITEABLE",'','OUTCOME',$message);
-    exit;
+    throw new Wl2Exception("FILE NOT WRITEABLE",Codes::RUNTIME_ERROR);
   }
-  print_xml_status('0',$_POST['action'],'OK','','OUTCOME',$message);
+  print_xml_status(Codes::OK,$action,'OK','','OUTCOME',$message);
 }
 
 //--------------------------------------------------------------
