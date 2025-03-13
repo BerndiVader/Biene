@@ -5,11 +5,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.sql.ResultSet;
@@ -20,24 +22,25 @@ import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -47,15 +50,15 @@ import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import org.xml.sax.InputSource;
 
 import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.db.SteuercodeQuery;
 import com.gmail.berndivader.biene.db.ValidatePictureTask;
 import com.gmail.berndivader.biene.enums.Action;
 import com.gmail.berndivader.biene.enums.Tasks;
-import com.gmail.berndivader.biene.http.get.GetInfo;
-import com.gmail.berndivader.biene.http.post.PostSimple;
+import com.gmail.berndivader.biene.http.get.GetInfoSync;
+import com.gmail.berndivader.biene.http.post.PostSimpleSync;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
 import com.gmail.berndivader.biene.rtf2html.RtfReader;
 import com.google.gson.Gson;
@@ -72,7 +75,7 @@ Utils
     private static Calendar calendar;
     private static SimpleDateFormat date_format;
     private static DecimalFormat format;
-    private static String key;
+    private static final String KEY;
     
     public static List<String>pictures;
 	public static final Gson GSON=new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -81,7 +84,7 @@ Utils
     static {
     	calendar=Calendar.getInstance();
     	date_format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	key="01234567";
+    	KEY="01234567";
     	format=new DecimalFormat("0.0000",DecimalFormatSymbols.getInstance(Locale.US));    	
         try {
             URI uri=Biene.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -147,7 +150,7 @@ Utils
     public static String encrypt(String strClearText) {
     	String strData="";
     	try {
-    		SecretKeySpec skeyspec=new SecretKeySpec(key.getBytes(),"Blowfish");
+    		SecretKeySpec skeyspec=new SecretKeySpec(KEY.getBytes(),"Blowfish");
     		Cipher cipher=Cipher.getInstance("Blowfish");
     		cipher.init(Cipher.ENCRYPT_MODE,skeyspec);
     		byte[]encrypted=cipher.doFinal(strClearText.getBytes());
@@ -161,7 +164,7 @@ Utils
     public static String decrypt(String strEncrypted) {
     	String strData="";
     	try {
-    		SecretKeySpec skeyspec=new SecretKeySpec(key.getBytes(),"Blowfish");
+    		SecretKeySpec skeyspec=new SecretKeySpec(KEY.getBytes(),"Blowfish");
     		Cipher cipher=Cipher.getInstance("Blowfish");
     		cipher.init(Cipher.DECRYPT_MODE,skeyspec);
     		byte[]decrypted=cipher.doFinal(Base64.getDecoder().decode(strEncrypted));
@@ -173,13 +176,151 @@ Utils
     }
     
     public static class XML {
-    	public static Document getXMLDocument(HttpResponse response) {
-    		try(InputStream stream=response.getEntity().getContent()) {
-    			return Utils.XML.loadXMLFromStream(stream);
-    		} catch (UnsupportedOperationException | IOException e) {
-    			Logger.$(e,false,true);
-    		}
+    	
+    	public enum CODES {
+
+    		OK(0),
+    		FAILED(-1),
+    		CONTINUE(1),
+    		
+    		VERSION(111),
+    		
+    		PHP_ERROR(-101),
+    		PHP_RUNTIME_ERROR(-122),
+    		PHP_EXCEPTION(-133),
+    		
+    		JAVA_ERROR(-111),
+    		JAVA_OK(100);
+    		
+    		private final int CODE;
+
+			CODES(int code) {
+				CODE=code;
+			}
+			
+			public int asInt() {
+				return CODE;
+			}
+			
+			public String asStr() {
+				return Integer.toString(CODE);
+			}
+			
+			
+			public static boolean contains(int value) {
+				return Arrays.stream(CODES.values())
+						.anyMatch(code->code.asInt()==value);
+			}
+			
+			public static boolean contains(String value) {
+				try {
+					return contains(Integer.parseInt(value));
+				} catch(NumberFormatException e) {
+					return false;
+				}
+			}
+			
+			public static CODES from(int value) {
+				return Arrays.stream(CODES.values())
+						.filter(code->code.asInt()==value)
+						.findFirst()
+						.orElse(CODES.JAVA_ERROR);
+			}
+			
+			public static CODES from(String value) {
+				try {
+					return from(Integer.parseInt(value));
+				} catch(NumberFormatException e) {
+					Logger.$(e);
+					return CODES.JAVA_ERROR;
+				}
+			}
+			
+			public static CODES from(HashMap<String,String>map) {
+				try {
+					return from(Integer.parseInt(map.get("CODE")));
+				} catch(NumberFormatException e) {
+					Logger.$(e);
+					return CODES.JAVA_ERROR;
+				}
+			}
+    	}
+    	
+    	/**
+    	 * 1. %s = encoding <br>
+    	 * 2. %s = CODE <br>
+    	 * 3. %s = ACTION <br>
+    	 * 4. %s = MESSAGE <br>
+    	 * 5. %s = ERROR_CODE <br>
+    	 * 6. %s = ERROR <br>
+    	 * 
+    	 * Error XML from PHP server.
+    	 */
+    	
+    	public static final String ERR_TEMPLATE=
+    			"<?xml version='1.0' encoding='%s'?>\n<STATUS>\n<STATUS_DATA>\n"
+    					+ "<CODE>%s</CODE>\n"
+    					+ "<ACTION>%s</ACTION>\n"
+    					+ "<MESSAGE>%s</MESSAGE>\n"
+    					+ "<ERROR_CODE>%s</ERROR_CODE>\n"
+    					+ "<ERROR>%s</ERROR>\n"
+    			+ "</STATUS_DATA>\n</STATUS>\n";
+    	private static final DocumentBuilderFactory FACTORY=DocumentBuilderFactory.newInstance();
+    	
+    	static {
+        	FACTORY.setNamespaceAware(true);
+    	}
+    	
+    	public static boolean isError(HashMap<String,String>map) {
+    		return map.containsKey("ERROR");
+    	}
+ 
+    	public static void printError(HashMap<String,String>map) {
+    		Logger.$(String.format("Error:%s Action:%s Message:%s\nDetails:%s",map.get("CODE"),map.get("ACTION"),map.get("MESSAGE"),map.get("ERROR")),false,false);
+    	}
+    	
+    	private static Document createError(CODES code,String action,String message,String errCode,String errValue) {
+    		String charSet=Charset.defaultCharset().name();
+    		try(StringReader reader=new StringReader(String.format(ERR_TEMPLATE,charSet,code.asInt(),action,message,errCode,errValue))) {
+        		return FACTORY.newDocumentBuilder().parse(new InputSource(reader));
+    		} catch (Exception e) {
+    			Logger.$(e);
+			}
     		return null;
+    	}
+    	
+    	public static Document getXMLDocument(HttpResponse response) {
+    		Document xml=null;
+    		if(response==null) {
+    			Logger.$("Http response is NULL.",false,false);
+    			return createError(CODES.JAVA_ERROR,"runtime-error","The HTTP-API answered with VOID.","-999","HttpResponse==NULL");
+    		}
+    		
+    		Charset charSet=Charset.defaultCharset();
+    		Header encoding=response.getFirstHeader("Content-Encoding");
+    		if(encoding!=null) {
+    			try {
+        			charSet=Charset.forName(encoding.getValue());
+    			} catch (Exception e) {
+    				charSet=Charset.defaultCharset();
+				}
+    		}
+    		
+    		try(InputStream stream=response.getEntity().getContent()) {
+    	        String type=response.getEntity().getContentType().getValue();
+    	        if(type!=null&&type.contains("text/xml")) {
+        			InputSource source=new InputSource(stream);
+        			source.setEncoding(charSet.name());
+        			xml=Utils.XML.loadXMLFromStream(source);
+    	        } else {
+    	        	Logger.$("Content is not of type XML.",false,false);
+    	        	xml=createError(CODES.JAVA_ERROR,"runtime-error","No XML content.","-999","Expectet xml but got "+type);
+    	        }
+    		} catch (Exception e) {
+    			Logger.$(e,false,false);
+	        	xml=createError(CODES.JAVA_ERROR,"runtime-exception","Failed to read response.","-999",e.getMessage());
+    		}
+    		return xml;
     	}
     	
     	public static void printOut(String parent,NodeList nodes) {
@@ -193,19 +334,17 @@ Utils
     				if(!text.isEmpty()) Logger.$(parent+":"+text,false,false);
     			};
     		}
-    	}    
+    	}
         
-        public static Document loadXMLFromStream(InputStream is) {
+        private static Document loadXMLFromStream(InputSource is) {
+        	Document xml=null;
         	try {
-            	DocumentBuilderFactory factory=DocumentBuilderFactory.newInstance();
-            	factory.setNamespaceAware(true);
-    			DocumentBuilder builder=factory.newDocumentBuilder();
-    			Document xml=builder.parse(is);
-    			return xml;
-    		} catch (ParserConfigurationException | SAXException | IOException e) {
+    			xml=FACTORY.newDocumentBuilder().parse(is);
+    		} catch (Exception e) {
         		Logger.$(e,false,true);
+        		xml=createError(CODES.JAVA_ERROR,"runtime-exception","Failed to parse received content into xml.","-999",e.getMessage());
     		}
-        	return null;
+        	return xml;
         }
         
         public static String convertDocumentToString(Document doc) {
@@ -219,7 +358,24 @@ Utils
         		Logger.$(e);
         		return null;
         	}
-        }    
+        }
+        
+        public static HashMap<String,String> map(Document xml) {
+        	return mapNodes("",xml.getChildNodes(),new HashMap<String,String>());
+        }
+        
+    	private static HashMap<String,String> mapNodes(String node_name,NodeList nodes,HashMap<String,String>result) {
+    		int size=nodes.getLength();
+    		for(int i1=0;i1<size;i1++) {
+    			Node node=nodes.item(i1);
+    			if(node.hasChildNodes()) {
+    				mapNodes(node.getNodeName(),node.getChildNodes(),result);
+    			} else if(node.getNodeType()==Node.TEXT_NODE) {
+    				result.put(node_name,node.getTextContent().trim());
+    			}
+    		}
+    		return result;
+    	}
     	
     }
     
@@ -255,12 +411,34 @@ Utils
 		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody("log",ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("message",new StringBody("("+date_format.format(calendar.getTime())+") "+log,ContentType.MULTIPART_FORM_DATA));
-		new PostSimple(Config.data.http_string(),builder.build());
+		
+		new PostSimpleSync(Config.data.http_string(),builder.build()) {
+			
+			@Override
+			public void _failed(HttpResponse response) {
+			}
+			
+			@Override
+			public void _completed(HttpResponse response) {
+				Document xml=Utils.XML.getXMLDocument(response);
+				HashMap<String,String>map=Utils.XML.map(xml);
+				if(Utils.XML.isError(map)) {
+					Logger.$("Error while trying to write to server logfile.",false,false);
+					Utils.XML.printError(map);
+				}
+			}
+
+			@Override
+			protected void max_seconds(long max) {
+				max_seconds=15l;
+			}
+		};
+		
 	}
 	
 	public static void showInfo() {
 		Logger.$("SQL-Server: "+Config.data.connection_string(),false,true);
-		new GetInfo();
+		new GetInfoSync();
 	}
 	
 	public static String makeCSVLine(Action action_enum,ResultSet result,RtfReader rtf_reader,RtfHtml rtf_html) {
@@ -305,7 +483,7 @@ Utils
 	        } else {
 	        	SteuercodeQuery query=new SteuercodeQuery(tax);
 	        	try {
-	        		query.latch.await(query.max_minutes,TimeUnit.MINUTES);
+	        		query.latch.await(query.max_seconds,TimeUnit.SECONDS);
 					tax=query.code;
 				} catch (InterruptedException e) {
 					Logger.$(e,false,true);
@@ -480,12 +658,15 @@ Utils
 	public static void deleteSelectedPictures(String[]selected_names) {
 		int size=selected_names.length;
 		if(size>0) {
-			
 		}
 	}
 	
 	public static long getCurrentTimeMinutes() {
 		return (System.currentTimeMillis()/1000)/60;
+	}
+	
+	public static void getBearerToken() {
+		
 	}
     
 }
