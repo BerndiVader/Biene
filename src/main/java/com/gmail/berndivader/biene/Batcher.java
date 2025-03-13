@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.db.QueryBatchTask;
 import com.gmail.berndivader.biene.db.UpdateShopTask;
+import com.gmail.berndivader.biene.gui.Main;
 
 public 
 class 
@@ -21,6 +22,8 @@ Runnable
 	public boolean auto_update;
 	private long startTime;
 	
+	private int active_threads,scheduled_threads;
+	
 	private QueryBatchTask current;
 	
 	static {
@@ -28,6 +31,7 @@ Runnable
 	}
 	
 	public Batcher() {
+		active_threads=scheduled_threads=-1;
 		auto_update=Config.data.auto_update();
 		update_start=Config.data.update_interval();
 		
@@ -51,7 +55,7 @@ Runnable
 			}
 		}
 		
-		if(current!=null&&current.getRunningTime()/60000>current.max_minutes&&!current.future.isDone()&&!current.future.isCancelled()) {
+		if(current!=null&&current.getRunningTime()*0.001>current.max_seconds&&!current.future.isDone()&&!current.future.isCancelled()) {
 			try {
 				current.future.get(3l,TimeUnit.SECONDS);
 			} catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -63,7 +67,14 @@ Runnable
 		if(current==null||current.future.isDone()||current.future.isCancelled()) {
 			if(!QUERY_STACK.isEmpty()&&(current=QUERY_STACK.poll())!=null) current.batch();
 		}
-			
+		
+		if(!Biene.no_gui&&(Helper.executor.getActiveCount()!=active_threads||QUERY_STACK.size()!=scheduled_threads)) {
+			active_threads=Helper.executor.getActiveCount();
+			scheduled_threads=QUERY_STACK.size();
+			Main.frame.setTitle(Main.APP_NAME.concat(
+					String.format(" [active:%s][queried:%s]",Integer.toString(active_threads),Integer.toString(scheduled_threads))));
+		}
+
 	}
 
 }
