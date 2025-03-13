@@ -26,6 +26,13 @@ Cloneable
 	private String sql_verify;
 	private String meso_year;
 	private String http_string;
+	private String shop_user;
+	private String shop_password;
+	private boolean cf_enabled;
+	private String cf_client;
+	private String cf_secret;
+	private String bearer_token;
+	private String bearer_expire;
 	private String csv_header;
 	private String katalog;
 	private boolean auto_update;
@@ -48,38 +55,30 @@ Cloneable
 	
 	public String connection_string() {
 		return connection_string;
-		//return connection_string!=null?decode(connection_string):null;
 	}
 	public void connection_string(String connection_string) {
 		this.connection_string=connection_string;
-		//this.connection_string=encode(connection_string);
 	}
 	
 	public String username() {
 		return username;
-		//return username!=null?decode(username):null;
 	}
 	public void username(String username) {
 		this.username=username;
-		//this.username=encode(username);
 	}
 	
 	public String password() {
 		return password;
-		//return password!=null?decode(password):null;
 	}
 	public void password(String password) {
 		this.password=password;
-		//this.password=encode(password);
 	}
 	
 	public String database() {
 		return database;
-		//return database!=null?decode(database):null;
 	}
 	public void database(String database) {
 		this.database=database;
-		//this.database=encode(database);
 	}
 	
 	public String winline_query() {
@@ -182,24 +181,59 @@ Cloneable
 		this.http_string=http_string;
 	}
 	
-	public String shop_user() {
-		String http=http_string();
-		if(http!=null) {
-			String string=http.split("user=")[1];
-			String[]parse=string.split("&password=");
-			return parse[0];
-		}
-		return null;
+	public void cf_enabled(boolean cloudflare_enabled) {
+		cf_enabled=cloudflare_enabled;
+	}
+	public boolean cf_enabled() {
+		return cf_enabled;
 	}
 	
+	public void cf_client(String cloudflare_client) {
+		cf_client=cloudflare_client;
+	}
+	public String cf_client() {
+		return cf_client;
+	}
+	
+	public void cf_secret(String cloudflare_secret) {
+		cf_secret=cloudflare_secret;
+	}
+	public String cf_secret() {
+		return cf_secret;
+	}
+
+	public void shop_user(String user) {
+		shop_user=user;
+	}
+	public String shop_user() {
+		return shop_user;
+	}
+
+	public void shop_password(String password) {
+		shop_password=password;
+	}
 	public String shop_password() {
-		String http=http_string();
-		if(http!=null) {
-			String string=http.split("user=")[1];
-			String[]parse=string.split("&password=");
-			return parse[1];
+		return shop_password;
+	}
+	
+	public void bearer_token(String token) {
+		if(token==null) return;
+		bearer_token=Utils.encrypt(token);
+	}
+	public String bearer_token() {
+		return bearer_token!=null?Utils.decrypt(bearer_token):"";
+	}
+	
+	public void bearer_expire(long expire) {
+		bearer_expire=Utils.encrypt(Long.toString(expire));
+	}
+	public long bearer_expire() {
+		if(bearer_expire==null) return 0l;
+		try {
+			return Long.parseLong(Utils.decrypt(bearer_expire));
+		} catch(Exception e) {
+			return 0l;
 		}
-		return null;
 	}
 	
 	private static String encode(String value) {
