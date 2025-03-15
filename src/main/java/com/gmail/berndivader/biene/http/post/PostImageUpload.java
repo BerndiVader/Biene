@@ -48,7 +48,7 @@ PostTask
 			file_name=parse[0]+".jpg";
 		}
 		
-		post=new ZeroCopyPost(url+Tasks.HTTP_POST_IMAGE_UPLOAD.command()+"&file_name="+file_name+"&file_size="+file.length(),file,ContentType.IMAGE_JPEG) {
+		post=new ZeroCopyPost(url+Tasks.HTTP_POST_IMAGE_UPLOAD.get()+"&file_name="+file_name+"&file_size="+file.length(),file,ContentType.IMAGE_JPEG) {
 			
 			@Override
 			protected HttpEntityEnclosingRequest createRequest(final URI requestURI,final HttpEntity entity) {
@@ -57,8 +57,7 @@ PostTask
 					request.setHeader("CF-Access-Client-Id",Config.data.cf_client());
 					request.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
 				}
-				request.setHeader("user",Config.data.shop_user());
-				request.setHeader("password",Config.data.shop_password());
+				request.setHeader("X-Authorization",Config.data.bearer_token());
 								
 				return request;
 			}

@@ -49,9 +49,7 @@ IPostTask
 			post.setHeader("CF-Access-Client-Id",Config.data.cf_client());
 			post.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
 		}
-		post.setHeader("X-Authorization","Bearer ".concat(Config.data.bearer_token()));
-		post.setHeader("user",Config.data.shop_user());
-		post.setHeader("password",Config.data.shop_password());
+		post.setHeader("X-Authorization",Config.data.bearer_token());
 		if(entity!=null) post.setEntity(this.entity);
 	}
 

@@ -11,6 +11,7 @@ import com.gmail.berndivader.biene.Logger;
 import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.db.UpdateShopTask;
 import com.gmail.berndivader.biene.db.ValidatePicture;
+import com.gmail.berndivader.biene.http.post.PostXAuthTokenRequestSync;
 
 import javax.swing.JTextArea;
 import javax.swing.BoxLayout;
@@ -33,8 +34,6 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -255,65 +254,46 @@ JFrame {
 	private PopupMenu createPopup() {
 		PopupMenu popup=new PopupMenu();
 		MenuItem popup_update=new MenuItem("Shop aktualisieren");
-		MenuItem popup_show=new MenuItem("Toggle Window");
 		MenuItem popup_about=new MenuItem("Info");
+		MenuItem popup_xauth=new MenuItem("XAuth erneuern");
 		MenuItem popup_settings=new MenuItem("Einstellungen");
+		MenuItem popup_show=new MenuItem("Toggle Window");
 		MenuItem popup_exit=new MenuItem("Beenden");
 		
 		popup.add(popup_update);
 		popup.add(popup_about);
+		popup.add(popup_xauth);
 		popup.add(popup_settings);
 		popup.add(popup_show);
 		popup.add(popup_exit);
 		
-		popup_update.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				new UpdateShopTask();
+		popup_xauth.addActionListener(action->new PostXAuthTokenRequestSync());
+		popup_update.addActionListener(action->new UpdateShopTask());
+		popup_about.addActionListener(action->Utils.showInfo());
+		popup_show.addActionListener(action->frame.setVisible(!frame.isVisible()));
+		
+		popup_settings.addActionListener(action->{
+			if(settings!=null) {
+				settings.setExtendedState(Frame.NORMAL);
+				settings.setVisible(true);
+			} else {
+				settings=new Settings();
+				settings.setVisible(true);
+				settings.setExtendedState(Frame.NORMAL);
 			}
 		});
-		
-		popup_about.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Utils.showInfo();
-			}
-		});
-		
-		popup_show.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.setVisible(!frame.isVisible());
-			}
-		});
-		
-		popup_settings.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(settings!=null) {
-					settings.setExtendedState(Frame.NORMAL);
-					settings.setVisible(true);
+
+		popup_exit.addActionListener(action->{
+			if(!exit) {
+				exit=true;
+				if(JOptionPane.showConfirmDialog(frame,"Biene wirklich beenden?","Frage",JOptionPane.YES_NO_OPTION)==0) {
+					System.exit(0);
 				} else {
-					settings=new Settings();
-					settings.setVisible(true);
-					settings.setExtendedState(Frame.NORMAL);
+					exit=false;
 				}
 			}
 		});
 		
-		popup_exit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(!exit) {
-					exit=true;
-					if(JOptionPane.showConfirmDialog(frame,"Biene wirklich beenden?","Frage",JOptionPane.YES_NO_OPTION)==0) {
-						System.exit(0);
-					} else {
-						exit=false;
-					}
-				}
-			}
-		});
 		return popup;
 	}
 }

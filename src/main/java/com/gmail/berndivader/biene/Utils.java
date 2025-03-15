@@ -187,6 +187,9 @@ Utils
     		
     		PHP_ERROR(-101),
     		PHP_RUNTIME_ERROR(-122),
+    		PHP_USER_LOGIN_ERROR(-144),
+    		PHP_XAUTH_LOGIN_ERROR(-145),
+    		PHP_XAUTH_TOKEN_EXPIRED(-146),
     		PHP_EXCEPTION(-133),
     		
     		JAVA_ERROR(-111),

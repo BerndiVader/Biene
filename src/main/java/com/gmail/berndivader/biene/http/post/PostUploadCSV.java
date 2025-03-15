@@ -34,7 +34,7 @@ PostTask
 	public PostUploadCSV(String url, File file) throws FileNotFoundException {
 		super(url,null);
 		
-		post=new ZeroCopyPost(url+Tasks.HTTP_POST_UPLOAD_CSV_FILE.command()+"&file_name="+file.getName()+"&file_size="+file.length(),file,ContentType.TEXT_PLAIN) {
+		post=new ZeroCopyPost(url+Tasks.HTTP_POST_UPLOAD_CSV_FILE.get()+"&file_name="+file.getName()+"&file_size="+file.length(),file,ContentType.TEXT_PLAIN) {
 			
 			@Override
 			protected HttpEntityEnclosingRequest createRequest(final URI requestURI,final HttpEntity entity) {
@@ -43,8 +43,7 @@ PostTask
 					request.setHeader("CF-Access-Client-Id",Config.data.cf_client());
 					request.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
 				}
-				request.setHeader("user",Config.data.shop_user());
-				request.setHeader("password",Config.data.shop_password());
+				request.setHeader("X-Authorization",Config.data.bearer_token());
 				return request;
 			}
 			

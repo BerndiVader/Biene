@@ -35,14 +35,12 @@ IGetTask
 		
 		this.url=url;
 		this.command=command;
-		request=new HttpGet(url.concat(command.command()));
+		request=new HttpGet(url.concat(command.get()));
 		if(Config.data.cf_enabled()) {
 			request.setHeader("CF-Access-Client-Id",Config.data.cf_client());
 			request.setHeader("CF-Access-Client-Secret",Config.data.cf_secret());
 		}
-		request.setHeader("X-Authorization","Bearer ".concat(Config.data.bearer_token()));
-		request.setHeader("user",Config.data.shop_user());
-		request.setHeader("password",Config.data.shop_password());
+		request.setHeader("X-Authorization",Config.data.bearer_token());
 				
 	}
 	

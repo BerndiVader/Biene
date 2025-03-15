@@ -12,6 +12,8 @@ Tasks
 	HTTP_POST_IMAGE_UPLOAD("img_upload"),
 	HTTP_POST_IMAGE_VALIDATE("img_validate"),
 	HTTP_POST_IMAGE_VALIDATE_FILE("img_validate_file"),
+	HTTP_POST_XAUTH_TOKEN_REQUEST("xauth_token_request"),
+	
 	
 	HTTP_GET_VERSION("version"),
 	HTTP_GET_PRODUCTS_PRINTOUT("products_export"),
@@ -42,7 +44,7 @@ Tasks
 		return command;
 	}
 	
-	public String command() {
+	public String get() {
 		return GET.concat(command);
 	}
 	
