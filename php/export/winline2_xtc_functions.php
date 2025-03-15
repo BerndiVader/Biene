@@ -313,7 +313,7 @@ function ImageProzess($action)
 
   if($dir===false)
   {
-    throw new Wl2Exception("UPLOADED_IMAGES DIR DOES NOT EXISTS",Codes::RUNTIME_ERROR);
+    throw new Wl2Exception("Uploaded images directory not exists.",Codes::RUNTIME_ERROR);
   }
 
   $outcome="";
@@ -375,12 +375,12 @@ function ImageProzess($action)
   }
   else if($count<$uploads)
   {
-    $outcome.="Nur {$count} Bilder von {$uploads} verarbeitet da vorzeitig abgebrochen.";
+    $outcome.="Nur {$count} Bilder von {$uploads} verarbeitet und vorzeitig abgebrochen.";
     throw new Wl2Exception($outcome,Codes::RUNTIME_ERROR);
   }
   else
   {
-    throw new Wl2Exception("UNKNOWN ERROR WHILE PROCESSING UPLOADED IMAGES",Codes::RUNTIME_ERROR);
+    throw new Wl2Exception("Unbekannter Fehler beim verarbeiten der Bilder aufgetreten.",Codes::RUNTIME_ERROR);
   }
 
   print_xml_status($code,$action,$uploads,'','OUTCOME',$outcome);
