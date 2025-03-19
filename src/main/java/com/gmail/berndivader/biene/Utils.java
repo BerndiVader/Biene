@@ -53,6 +53,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.gmail.berndivader.biene.config.Config;
+import com.gmail.berndivader.biene.config.ConfigTypeAdapter;
+import com.gmail.berndivader.biene.config.Gdata;
 import com.gmail.berndivader.biene.db.SteuercodeQuery;
 import com.gmail.berndivader.biene.db.ValidatePictureTask;
 import com.gmail.berndivader.biene.enums.Action;
@@ -78,20 +80,28 @@ Utils
     private static final String KEY;
     
     public static List<String>pictures;
-	public static final Gson GSON=new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+	public static final Gson GSON;
 	public static File working_dir;
     
     static {
+    	GSON=new GsonBuilder()
+    			.disableHtmlEscaping()
+    			.setPrettyPrinting()
+    			.registerTypeAdapter(Gdata.class,new ConfigTypeAdapter<>(Gdata.class))
+    			.create();
+    	
     	calendar=Calendar.getInstance();
     	date_format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	KEY="01234567";
-    	format=new DecimalFormat("0.0000",DecimalFormatSymbols.getInstance(Locale.US));    	
+    	format=new DecimalFormat("0.0000",DecimalFormatSymbols.getInstance(Locale.US)); 
+    	
         try {
             URI uri=Biene.class.getProtectionDomain().getCodeSource().getLocation().toURI();
             working_dir=new File(uri.getPath().replace(new File(uri).getName(),""));
         } catch (URISyntaxException ex) {
         	Logger.$(ex);
         }
+        
     	updatePicturesList();
     }
     
@@ -156,7 +166,7 @@ Utils
     		byte[]encrypted=cipher.doFinal(strClearText.getBytes());
     		strData=new String(Base64.getEncoder().encode(encrypted));
     	} catch (Exception e) {
-    		Logger.$(e,false,true);
+    		return strClearText;
     	}
     	return strData;
     }
@@ -170,7 +180,7 @@ Utils
     		byte[]decrypted=cipher.doFinal(Base64.getDecoder().decode(strEncrypted));
     		strData=new String(decrypted);
     	} catch (Exception e) {
-    		Logger.$(e,false,true);
+    		return strEncrypted;
     	}
     	return strData;
     }
