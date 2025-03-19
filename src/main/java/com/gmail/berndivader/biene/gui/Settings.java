@@ -575,7 +575,7 @@ public class Settings extends JFrame {
 		connection_string_field.setText(Config.data.connection_string());
 		benutzer_field.setText(Config.data.username());
 		password_field.setText(Config.data.password());
-		mesoyear_field.setText(Config.data.meso_year());
+		mesoyear_field.setText(String.valueOf(Config.data.meso_year()));
 		sql_wl_zu_xtc.setText(Config.data.winline_query());
 		sql_find_changed.setText(Config.data.updates_query());
 		sql_find_inserts.setText(Config.data.inserts_query());

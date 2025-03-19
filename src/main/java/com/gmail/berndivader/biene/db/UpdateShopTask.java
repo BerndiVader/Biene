@@ -50,7 +50,7 @@ QueryBatchTask
 	@Override
 	public Boolean call() throws Exception {
 		Logger.$(String.format(START_INFO,this.uuid.toString()),false,true);
-		int mesoYear=Integer.parseInt(Config.data.meso_year());
+		int mesoYear=Config.data.meso_year();
 		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
 
 		try(Connection conn=DatabaseConnection.getNewConnection()) {
