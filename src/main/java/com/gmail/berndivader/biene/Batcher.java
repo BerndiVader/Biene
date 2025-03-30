@@ -71,7 +71,7 @@ Runnable
 		if(!Biene.no_gui&&(Helper.executor.getActiveCount()!=active_threads||QUERY_STACK.size()!=scheduled_threads)) {
 			active_threads=Helper.executor.getActiveCount();
 			scheduled_threads=QUERY_STACK.size();
-			Main.frame.setTitle(Main.APP_NAME.concat(
+			Main.instance.setTitle(Main.APP_NAME.concat(
 					String.format(" [active:%s][queried:%s]",Integer.toString(active_threads),Integer.toString(scheduled_threads))));
 		}
 

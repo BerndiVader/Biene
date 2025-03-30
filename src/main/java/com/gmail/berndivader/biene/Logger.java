@@ -61,6 +61,7 @@ Logger
 	}
 	
 	public static void $(Throwable e,boolean ballooned,boolean http_log) {
+		http_log=false;
 		StringWriter sw=new StringWriter();
 		PrintWriter pw=new PrintWriter(sw);
 		e.printStackTrace(pw);
@@ -85,17 +86,17 @@ Logger
 		if(text==null||text.isEmpty()) return;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				String[]arr=Main.frame.log_area.getText().split("\\n");
+				String[]arr=Main.instance.log_area.getText().split("\\n");
 				if(arr.length>80) {
 					String[]arr1=Arrays.copyOfRange(arr, 50, arr.length);
 					String trimmed="";
 					for(int i1=0;i1<arr1.length;i1++) {
 						trimmed+=arr1[i1].concat("\n");
 					}
-					Main.frame.log_area.setText(trimmed);
+					Main.instance.log_area.setText(trimmed);
 				}
-				Main.frame.log_area.append(text.concat("\n"));
-				if(ballooned) Main.frame.tray_icon.displayMessage("Info",text,MessageType.NONE);
+				Main.instance.log_area.append(text.concat("\n"));
+				if(ballooned) Main.instance.display_tray_message("Info",text,MessageType.NONE);
 			}
 		});
 	}

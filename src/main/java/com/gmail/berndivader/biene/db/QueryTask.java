@@ -18,7 +18,7 @@ extends
 Worker
 implements
 Callable<Boolean>,
-IQueryTask<Void>
+IQueryTask<Void,Void>
 {
 	protected final static String VAR="\\{biene_var\\}";
 	private final String query;

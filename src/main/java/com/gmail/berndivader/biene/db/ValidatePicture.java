@@ -45,7 +45,7 @@ public class ValidatePicture extends ResultQueryTask<String> {
 	}
 	
 	@Override
-	public void failed(ResultSet result) {
+	public void failed(Void error) {
 		Logger.$("Failed to execute: "+action.action());
 	}
 	

@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import com.gmail.berndivader.biene.Logger;
-import com.gmail.berndivader.biene.Utils;
 import com.gmail.berndivader.biene.enums.Tasks;
 
 public
@@ -42,12 +41,11 @@ ResultQueryTask<File[]>
 			} catch (SQLException e) {
 				Logger.$(e,false,false);
 			}
-			Utils.updatePicturesList();
 		}
 	}
 
 	@Override
-	public void failed(ResultSet result) {
+	public void failed(Void error) {
 		Logger.$("ValidatePictureTask konnte nicht abgeschlossen werden.",false,false);
 	}
 

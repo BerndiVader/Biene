@@ -44,7 +44,7 @@ Biene
 		if(!GraphicsEnvironment.isHeadless()&&!no_gui) {
 			EventQueue.invokeLater(new Runnable() {
 				public void run() {
-					Main.init();
+					Main.create();
 				}
 			});
 			

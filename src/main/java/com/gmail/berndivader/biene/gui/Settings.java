@@ -22,8 +22,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -31,6 +29,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.awt.Label;
 import java.awt.Font;
 import java.awt.TextArea;
@@ -55,10 +54,11 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.JButton;
 
 public class Settings extends JFrame {
 
-	Settings settings;
+	private Settings instance;
 	private static final long serialVersionUID = 10000L;
 	private JPanel contentPane;
 	
@@ -92,11 +92,12 @@ public class Settings extends JFrame {
 	private JComboBox<String>client_select;
 	
 	private int client_selected_index=0;
+	private JButton btnSelect;
 
 
 	public Settings() {
 		setTitle("Konfiguration");
-		this.settings=this;
+		instance=this;
 		setAlwaysOnTop(true);
 		setBounds(100, 100, 628, 730);
 		setIconImage(Main.icon_image);
@@ -318,16 +319,27 @@ public class Settings extends JFrame {
 		client_info = new JTextField();
 		client_info.setEditable(false);
 		client_info.setColumns(10);
+		
+		JButton btnReload = new JButton("refresh");
+		btnReload.addActionListener(e->update_clients());
+		
+		btnSelect = new JButton("select");
+		
 		GroupLayout gl_misc = new GroupLayout(misc);
 		gl_misc.setHorizontalGroup(
 			gl_misc.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_misc.createSequentialGroup()
-					.addGap(18)
+					.addContainerGap()
 					.addComponent(client_label, GroupLayout.PREFERRED_SIZE, 61, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(client_select, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(client_info, GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_misc.createParallelGroup(Alignment.LEADING)
+						.addGroup(Alignment.TRAILING, gl_misc.createSequentialGroup()
+							.addComponent(btnReload)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnSelect, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE))
+						.addComponent(client_info, GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
 					.addContainerGap())
 		);
 		gl_misc.setVerticalGroup(
@@ -335,44 +347,18 @@ public class Settings extends JFrame {
 				.addGroup(gl_misc.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
-						.addComponent(client_select, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(client_info, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-						.addComponent(client_label))
-					.addContainerGap(438, Short.MAX_VALUE))
+						.addComponent(client_label)
+						.addComponent(client_select, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnSelect)
+						.addComponent(btnReload))
+					.addContainerGap(406, Short.MAX_VALUE))
 		);
 		misc.setLayout(gl_misc);
 		
-		misc.addComponentListener(new ComponentListener() {
-			
-			@Override
-			public void componentShown(ComponentEvent e) {
-				update_clients();
-			}
-			
-			@Override
-			public void componentResized(ComponentEvent e) {
-			}
-			
-			@Override
-			public void componentMoved(ComponentEvent e) {
-			}
-			
-			@Override
-			public void componentHidden(ComponentEvent e) {
-			}
-			
-		});
-		
-		client_select.addItemListener(new ItemListener() {
-			
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if(e.getStateChange()==ItemEvent.SELECTED) {
-					client_selected_index=client_select.getSelectedIndex();
-				}
-			}
-			
-		});
+		update_clients();
 		
 		panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
@@ -433,7 +419,7 @@ public class Settings extends JFrame {
 		restore = new Button("Zurücksetzen");
 		restore.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				switch(JOptionPane.showConfirmDialog(settings,"Konfiguration neu laden?","Zurücksetzen",JOptionPane.OK_CANCEL_OPTION)) {
+				switch(JOptionPane.showConfirmDialog(instance,"Konfiguration neu laden?","Zurücksetzen",JOptionPane.OK_CANCEL_OPTION)) {
 				case 0:
 					update_fields();
 					break;
@@ -446,7 +432,7 @@ public class Settings extends JFrame {
 		cancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				update_fields();
-				settings.setVisible(false);
+				instance.setVisible(false);
 			}
 		});
 		panel_1.add(cancel);
@@ -455,7 +441,7 @@ public class Settings extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(e.getActionCommand().equals("Speichern")) {
-					switch(JOptionPane.showConfirmDialog(settings,"Konfiguration übernehmen und speichern?")) {
+					switch(JOptionPane.showConfirmDialog(instance,"Konfiguration übernehmen und speichern?")) {
 						case 0:
 							update_config();
 							Config.saveConfig();
@@ -466,7 +452,7 @@ public class Settings extends JFrame {
 							return;
 					}
 					update_fields();
-					settings.setVisible(false);
+					instance.setVisible(false);
 				}
 			}
 		});
@@ -481,7 +467,7 @@ public class Settings extends JFrame {
 			@Override
 			public void windowIconified(WindowEvent e) {
 				update_fields();
-				settings.setVisible(false);
+				instance.setVisible(false);
 			}
 			
 			@Override
@@ -504,7 +490,6 @@ public class Settings extends JFrame {
 			
 			@Override
 			public void windowActivated(WindowEvent e) {
-				tabbedPane.setSelectedIndex(0);
 				update_fields();
 			}
 		});
@@ -515,10 +500,10 @@ public class Settings extends JFrame {
 		String query="SELECT c000 AS name,c001 AS client,c003 AS city,c004 AS street,c006 AS plz,mesocomp,mesoyear,mesoprim FROM dbo.t001;";
 		int index=client_selected_index;
 		
-		new SimpleResultQuery(query,Tasks.VARIOUS,10l) {
+		new SimpleResultQuery(query,Tasks.DB_RESULT_REQUEST,10l) {
 			
 			@Override
-			public void failed(ResultSet result) {
+			public void failed(Void error) {
 				Logger.$("Mandanten konnten nicht gelesen werden.");
 			}
 			
@@ -546,10 +531,11 @@ public class Settings extends JFrame {
 	}
 	
 	private void update_pictures() {
-		Utils.updatePicturesList();
+		ArrayList<String>pictures=Utils.updatePicturesList();
 		this.bilder.removeAll();
-		for(int i1=0;i1<Utils.pictures.size();i1++) {
-			this.bilder.add(Utils.pictures.get(i1));
+		int size=pictures.size();
+		for(int i1=0;i1<size;i1++) {
+			this.bilder.add(pictures.get(i1));
 		}
 	}
 	

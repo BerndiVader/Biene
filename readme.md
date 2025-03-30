@@ -1,2 +1,2 @@
 A interface for WinLine and Modified Shop software in Java and PHP.<br><br>Compatible with Modified Shop Software 2.x and higher. It can be run on a single desktop or on a headless server and it needs access to the MSSQL Server running the Winline database.<br><br>
-# [DOWNLOAD](https://berndivader.pii.at/jenkins/job/Biene%20-%20Winline2ModifiedShop/) [![Build Status](https://berndivader.pii.at/jenkins/job/Biene%20-%20Winline2ModifiedShop/badge/icon)] <br>
+# [DOWNLOAD](https://jenkins.berndivader.org/jenkins/job/Biene%20-%20Winline2ModifiedShop/) [![Build Status](https://jenkins.berndivader.org/jenkins/job/Biene%20-%20Winline2ModifiedShop/badge/icon)] <br>

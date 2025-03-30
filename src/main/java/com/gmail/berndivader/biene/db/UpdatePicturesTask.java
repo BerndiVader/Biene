@@ -37,21 +37,22 @@ QueryBatchTask
 		File folder=new File("Bilder/");
 		File[]files=folder.listFiles();
 		for(File file:files) {
-			PostImageUpload upload=new PostImageUpload(Config.data.http_string(),file);
-			upload.latch.await(upload.max_seconds,TimeUnit.SECONDS);
-			failed=upload.failed;
+			if(file.exists()&&file.length()>0l) {
+				PostImageUpload upload=new PostImageUpload(Config.data.http_string(),file);
+				upload.latch.await(upload.max_seconds,TimeUnit.SECONDS);
+				failed=failed||upload.failed;
+			}
 		}
 		
-		boolean repeat=true;
-		while(repeat) {
+		boolean repeat;
+		do {
 			PostProcessImagesSync process=new PostProcessImagesSync(Config.data.http_string());
 			if(process.join()) {
-				if(process.failed) break;
-				repeat=process.more;
+				repeat=process.more&&!process.failed;
 			} else {
 				break;
 			}
-		}
+		} while(repeat);
 		
 		if(failed) {
 			failed(null);

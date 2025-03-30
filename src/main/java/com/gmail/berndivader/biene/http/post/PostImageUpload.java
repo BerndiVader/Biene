@@ -35,7 +35,7 @@ PostTask
 	private ZeroCopyPost post;
 
 	public PostImageUpload(String url,File file) throws FileNotFoundException {
-		super(url,null);
+		super(url);
 		
 		this.file=file;
 		

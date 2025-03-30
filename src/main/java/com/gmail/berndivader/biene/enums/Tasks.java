@@ -23,6 +23,7 @@ Tasks
 	DB_GET_WINLINE("get_winline"),
 	DB_VALIDATE_PICTURE("validate_picture"),
 	DB_STEUERCODE("get_steuercode"),
+	DB_RESULT_REQUEST("query_request"),
 	
 	DB_QUERY_OK("db_query_ok"),
 	DB_QUERY_FAILED("db_query_failed"),

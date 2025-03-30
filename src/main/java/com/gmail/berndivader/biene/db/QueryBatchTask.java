@@ -20,7 +20,7 @@ extends
 Worker
 implements
 Callable<Boolean>,
-IQueryTask<Void>
+IQueryTask<Void,Void>
 {
 	protected UUID uuid;
 	protected String query;

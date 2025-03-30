@@ -11,15 +11,15 @@ public
 class 
 DatabaseConnection
 {
-	private static String sql_string;
+	private static final String SQL_STRING;
 	
 	static {
-		sql_string="com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		SQL_STRING="com.microsoft.sqlserver.jdbc.SQLServerDriver";
 	}
 	
 	public DatabaseConnection() {
   		try {
-			Class.forName(sql_string);
+			Class.forName(SQL_STRING);
 	   		Connection connection=DriverManager.getConnection(Config.data.connection_string(),Config.data.username(),Config.data.password());
 	   		if(connection==null||connection.isClosed()) {
 	   			Logger.$("Verbindung zum MS-SQL Server fehlgeschlagen.",false,true);

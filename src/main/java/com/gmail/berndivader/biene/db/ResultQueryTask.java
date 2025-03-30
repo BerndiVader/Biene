@@ -21,7 +21,7 @@ extends
 Worker
 implements
 Callable<ResultSet>,
-IQueryTask<ResultSet>
+IQueryTask<ResultSet,Void>
 {
 	
 	protected final String query;
@@ -51,6 +51,7 @@ IQueryTask<ResultSet>
 	@Override
 	public void execute() {
 		future=Helper.executor.submit(this);
+		
 	}
 	
 	@Override

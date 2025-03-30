@@ -56,9 +56,7 @@ import com.gmail.berndivader.biene.config.Config;
 import com.gmail.berndivader.biene.config.ConfigTypeAdapter;
 import com.gmail.berndivader.biene.config.Gdata;
 import com.gmail.berndivader.biene.db.SteuercodeQuery;
-import com.gmail.berndivader.biene.db.ValidatePictureTask;
 import com.gmail.berndivader.biene.enums.Action;
-import com.gmail.berndivader.biene.enums.Tasks;
 import com.gmail.berndivader.biene.http.get.GetInfoSync;
 import com.gmail.berndivader.biene.http.post.PostSimpleSync;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
@@ -79,7 +77,6 @@ Utils
     private static DecimalFormat format;
     private static final String KEY;
     
-    public static List<String>pictures;
 	public static final Gson GSON;
 	public static File working_dir;
     
@@ -102,7 +99,6 @@ Utils
         	Logger.$(ex);
         }
         
-    	updatePicturesList();
     }
     
     public static void init() {
@@ -420,10 +416,8 @@ Utils
 	public static void writeLog(String log) {
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-		builder.addPart("user",new StringBody(Config.data.shop_user(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("password",new StringBody(Config.data.shop_password(),ContentType.MULTIPART_FORM_DATA));
-		builder.addPart("action",new StringBody("log",ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("message",new StringBody("("+date_format.format(calendar.getTime())+") "+log,ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("action",new StringBody("log",ContentType.MULTIPART_FORM_DATA));
 		
 		new PostSimpleSync(Config.data.http_string(),builder.build()) {
 			
@@ -635,34 +629,18 @@ Utils
 		}
 	}
 	
-	public static void updatePicturesList() {
-		pictures=new ArrayList<String>();
-		File[] files=null;
-		files = getPictures();
+	public static ArrayList<String> updatePicturesList() {
+		ArrayList<String>pictures=new ArrayList<String>();
+		File[] files=getPictures();
 		int size=files.length;
 		for(int i1=0;i1<size;i1++) {
 			pictures.add(files[i1].getName());
 		}
 		Collections.sort(pictures);
+		return pictures;
 	}
 	
-	public static void validatePictures() {
-		File[]files=getPictures();
-		int size=files.length;
-		for(int i1=0;i1<size;i1++) {
-			File file=files[i1];
-			String file_name=file.getName();
-			if(file_name.toUpperCase().contains(".JPG")) {
-				String name=file_name.substring(0,file_name.length()-4);
-				String query="select c076 from dbo.biene_temp where c076='"+name+"'";
-				new ValidatePictureTask(query,Tasks.DB_VALIDATE_PICTURE,null);
-			} else {
-				file.delete();
-			}
-		}
-	}
-	
-	public static File[]getPictures() {
+	private static File[]getPictures() {
 		File folder=new File(Utils.working_dir+"/Bilder");
 		folder.mkdir();
 		return folder.listFiles();
@@ -676,11 +654,7 @@ Utils
 	
 	public static long getCurrentTimeMinutes() {
 		return (System.currentTimeMillis()/1000)/60;
-	}
-	
-	public static void getBearerToken() {
-		
-	}
+	}	
     
 }
 	

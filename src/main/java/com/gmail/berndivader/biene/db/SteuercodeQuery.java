@@ -36,7 +36,7 @@ public class SteuercodeQuery extends SimpleResultQuery {
 	}
 	
 	@Override
-	public void failed(ResultSet result) {
+	public void failed(Void error) {
 		Logger.$("Failed to get Steuercode for: "+this.code);
 	}
 
