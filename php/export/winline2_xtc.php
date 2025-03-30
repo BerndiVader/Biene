@@ -340,7 +340,7 @@ try
           SendScriptVersion($action);
           exit;
         default:
-          throw new Wl2Exception("UNKNOWN ACTION COMMAND",Codes::RUNTIME_ERROR);
+          throw new Wl2Exception("UNKNOWN ACTION GET COMMAND",Codes::RUNTIME_ERROR);
       }
     }
   }
@@ -387,7 +387,7 @@ try
           exit;
       }
     }
-    throw new Wl2Exception("UNKNOWN ACTION COMMAND",Codes::RUNTIME_ERROR);
+    throw new Wl2Exception("UNKNOWN ACTION POST COMMAND",Codes::RUNTIME_ERROR);
   }
 
 }

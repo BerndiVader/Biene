@@ -227,25 +227,38 @@ function CsvFileImport2(string $action)
 {
   global $_POST;
 
-  if(!isset($_POST['file_name']))
+  if(!defined("CSV_SEPERATOR"))
+  {
+    define("CSV_SEPERATOR","|");
+    define("CSV_TEXTSIGN","");
+    define("CSV_CAT_DEPTH",4);
+    define("CSV_CATEGORY_DEFAULT","Top");
+  }
+
+  if(!isset($_POST['file_name'])||empty($_POST['file_name']))
   {
     throw new Wl2Exception("MISSING FILENAME",Codes::RUNTIME_ERROR);
   }  
-
+  
 	$file_name=$_POST['file_name'];
   
   require DIR_FS_ADMIN.'/includes/classes/import.php';
   require DIR_FS_INC.'xtc_format_filesize.inc.php';
   require DIR_FS_INC.'xtc_get_customers_statuses.inc.php';
 
-  define("CSV_SEPERATOR","|");
-  define("CSV_TEXTSIGN","");
-  define("CSV_CAT_DEPTH",4);
-  define("CSV_CATEGORY_DEFAULT","Top");
-
   $handler=new xtcImport($file_name);
+  $handler->seperator="|";
+  $handler->Textsign="^";
+  $handler->catDepth=4;
+  $handler->CatDefault="1TEMP";
+
   $map=$handler->generate_map();
   $mapping=$handler->map_file($map);
+  if($mapping==="error")
+  {
+    throw new Wl2Exception("Mapping failed.",Codes::RUNTIME_ERROR);
+  }
+
   $import=$handler->import($mapping);
 
   $error="";
