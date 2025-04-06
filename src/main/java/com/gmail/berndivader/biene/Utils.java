@@ -311,6 +311,7 @@ Utils
     			try {
         			charSet=Charset.forName(encoding.getValue());
     			} catch (Exception e) {
+    				Logger.$(e,false,false);
     				charSet=Charset.defaultCharset();
 				}
     		}

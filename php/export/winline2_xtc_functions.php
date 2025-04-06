@@ -1,9 +1,25 @@
 <?php
 
+function SendXMLHeader(string $charset="0")
+{
+  if($charset==false)
+  {
+    $charset=$charset=iconv_get_encoding("internal_encoding");
+  }
+
+  header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+  header("Cache-Control: no-cache, must-revalidate");
+  header("Pragma: no-cache");
+  header("Content-Encoding: {$charset}");
+  header("Content-type: text/xml");
+}
+
+//--------------------------------------------------------------
+
 function SendScriptVersion(string $action)
 {
   global $version_nr,$version_datum;
-  $schema='<?xml version="1.0" encoding="'.CHARSET.'"?>'."\n".
+  $schema='<?xml version="1.0" encoding="'.iconv_get_encoding('internal_encoding').'"?>'."\n".
           '<STATUS>'."\n".
           '<STATUS_DATA>'."\n".
           '<ACTION>'.$action.'</ACTION>'."\n".
@@ -20,7 +36,7 @@ function SendScriptVersion(string $action)
 
 function print_xml_status(Codes $c,string $action,string $msg,string $mode="",string $item_name="",string $item_value="")
 {
-  $schema='<?xml version="1.0" encoding="'.CHARSET.'"?>'."\n".
+  $schema='<?xml version="1.0" encoding="{%charset%}"?>'."\n".
             '<STATUS>'."\n".
             '<STATUS_DATA>'."\n".
             '<CODE>'.(string)$c->value.'</CODE>'."\n" .
@@ -38,7 +54,14 @@ function print_xml_status(Codes $c,string $action,string $msg,string $mode="",st
 
   $schema.='</STATUS_DATA>'."\n".'</STATUS>'."\n\n";
 
-  SendXMLHeader();
+  $charset=mb_detect_encoding($schema,mb_list_encodings(),true);
+  if($charset===false)
+  {
+    $charset=iconv_get_encoding("internal_encoding");
+  }
+  $schema=str_replace("{%charset%}",$charset,$schema); 
+  SendXMLHeader($charset);
+
   echo $schema;
   return;
 }
@@ -51,15 +74,6 @@ function column_exists(string $table,string $column)
   return xtc_db_fetch_row($Table)!==false;
 }
 
-//--------------------------------------------------------------
-
-function SendXMLHeader()
-{
-  header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
-  header("Cache-Control: no-cache, must-revalidate");
-  header("Pragma: no-cache");
-  header("Content-type: text/xml");
-}
 //--------------------------------------------------------------
 
 function CsvFileUpload(string $action)
@@ -299,6 +313,48 @@ function CsvFileImport2(string $action)
 
 //--------------------------------------------------------------
 
+function ProductExport(string $action)
+{
+  require DIR_FS_ADMIN.'/includes/classes/import.php';
+  require DIR_FS_INC.'xtc_format_filesize.inc.php';
+  require DIR_FS_INC.'xtc_get_customers_statuses.inc.php';
+
+  $handler = new xtcExport('export.csv');
+  $export=$handler->exportProdFile();
+
+  $error="";
+  $message="";
+  $code=CODES::FAILED;
+
+  if(isset($export))
+  {
+    if($export[0])
+    {
+      $code=Codes::OK;
+      $message="OK";
+    }
+
+    if(isset($export[1])&&$export[1][0]!='')
+    {
+      $code=Codes::FAILED;
+      for($i=0;$i<count($export[1]);$i++) 
+      {
+        $error.$export[1][$i]."-";
+      }
+    }
+
+  }
+  else
+  {
+    throw new Wl2Exception("export is null",Codes::RUNTIME_ERROR);
+  }
+
+	print_xml_status($code,$action,$message,$error,'','');
+  return;
+}
+
+//--------------------------------------------------------------
+
 function ImageProzess($action)
 {
   define("DIR_FS_CATALOG_IMAGES",DIR_FS_CATALOG);
@@ -448,6 +504,8 @@ function PostBieneLog($action)
 
   $message=$_POST['message'];
   $filename=DIR_FS_DOCUMENT_ROOT.'import/biene.chk';
+  
+  $charset=mb_detect_encoding($message, mb_list_encodings(),true);
 
   if(!file_exists($filename))
   {
@@ -474,7 +532,7 @@ function PostBieneLog($action)
   {
     throw new Wl2Exception("FILE NOT WRITEABLE",Codes::RUNTIME_ERROR);
   }
-  print_xml_status(Codes::OK,$action,'OK','','OUTCOME',$message);
+  print_xml_status(Codes::OK,$action,'OK',$charset,'OUTCOME',$message);
 }
 
 //--------------------------------------------------------------

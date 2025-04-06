@@ -98,7 +98,7 @@ catch(Exception $e)
 
 function print_xml_error(Codes $codes,string $action,string $msg,string $error_code="-999",string $trace="No further information.")
 {
-  $schema='<?xml version="1.0" encoding="'.CHARSET.'"?>'."\n".
+  $schema='<?xml version="1.0" encoding="{%charset%}"?>'."\n".
             '<STATUS>'."\n".
             '<STATUS_DATA>'."\n".
             '<CODE>'.(string)$codes->value.'</CODE>'."\n" .
@@ -108,10 +108,19 @@ function print_xml_error(Codes $codes,string $action,string $msg,string $error_c
             '<ERROR>'.$trace.'</ERROR>'."\n".
             '</STATUS_DATA>'."\n".'</STATUS>'."\n\n";
 
+  $charset=mb_detect_encoding($schema,mb_list_encodings(),true);
+  if($charset===false)
+  {
+    $charset=iconv_get_encoding("internal_encoding");
+  }
+  $schema=str_replace("{%charset%}",$charset,$schema);  
+
   header("Last-Modified: ".gmdate ("D, d M Y H:i:s")." GMT");
   header("Cache-Control: no-cache, must-revalidate");
   header("Pragma: no-cache");
+  header("Content-Encoding: {$charset}");
   header("Content-type: text/xml");
+  
   echo $schema;
   return;
 }
@@ -364,6 +373,9 @@ try
       $action=$_POST['action'];
       switch($action) 
       {
+        case'csv_export':
+          ProductExport($action);
+          exit;
         case'log':
           PostBieneLog($action);
           exit;
