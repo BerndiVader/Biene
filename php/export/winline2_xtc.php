@@ -65,6 +65,8 @@ try
 
   $LangID=2;
   $Lang_folder='german';
+
+  define('WL2XTC',true);
   
   define('SWITCH_MWST',false);
   define ('LOGGER',false);
@@ -94,7 +96,6 @@ catch(Exception $e)
 {
   exception_handler($e);
 }
-
 
 function print_xml_error(Codes $codes,string $action,string $msg,string $error_code="-999",string $trace="No further information.")
 {

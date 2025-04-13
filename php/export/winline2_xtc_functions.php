@@ -241,30 +241,15 @@ function CsvFileImport2(string $action)
 {
   global $_POST;
 
-  if(!defined("CSV_SEPERATOR"))
-  {
-    define("CSV_SEPERATOR","|");
-    define("CSV_TEXTSIGN","");
-    define("CSV_CAT_DEPTH",4);
-    define("CSV_CATEGORY_DEFAULT","Top");
-  }
-
   if(!isset($_POST['file_name'])||empty($_POST['file_name']))
   {
     throw new Wl2Exception("MISSING FILENAME",Codes::RUNTIME_ERROR);
-  }  
-  
-	$file_name=$_POST['file_name'];
-  
-  require DIR_FS_ADMIN.'/includes/classes/import.php';
-  require DIR_FS_INC.'xtc_format_filesize.inc.php';
-  require DIR_FS_INC.'xtc_get_customers_statuses.inc.php';
+  }
 
-  $handler=new xtcImport($file_name);
-  $handler->seperator="|";
-  $handler->Textsign="^";
-  $handler->catDepth=4;
-  $handler->CatDefault="1TEMP";
+  require "winline2_xtc_import.php";
+  
+	$file_name=$_POST['file_name'];  
+  $handler=new Wl2Import($file_name);
 
   $map=$handler->generate_map();
   $mapping=$handler->map_file($map);
@@ -293,7 +278,7 @@ function CsvFileImport2(string $action)
       $message="OK";
     }
 
-    if(isset($import[1])&&$import[1][0]!='')
+    if(isset($import[1][0])&&$import[1][0]!='')
     {
       $code=Codes::FAILED;
       for($i=0;$i<count($import[1]);$i++) 
@@ -315,11 +300,10 @@ function CsvFileImport2(string $action)
 
 function ProductExport(string $action)
 {
-  require DIR_FS_ADMIN.'/includes/classes/import.php';
-  require DIR_FS_INC.'xtc_format_filesize.inc.php';
-  require DIR_FS_INC.'xtc_get_customers_statuses.inc.php';
 
-  $handler = new xtcExport('export.csv');
+  require "winline2_xtc_import.php";
+
+  $handler=new Wl2Export('export.csv');
   $export=$handler->exportProdFile();
 
   $error="";
