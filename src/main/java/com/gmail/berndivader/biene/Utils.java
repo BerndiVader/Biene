@@ -72,7 +72,6 @@ Utils
     private static FileChannel lock_fileChannel;
     private static FileLock lock;
     private static boolean running=false;
-    private static Calendar calendar;
     private static SimpleDateFormat date_format;
     private static DecimalFormat format;
     private static final String KEY;
@@ -87,10 +86,9 @@ Utils
     			.registerTypeAdapter(Gdata.class,new ConfigTypeAdapter<>(Gdata.class))
     			.create();
     	
-    	calendar=Calendar.getInstance();
     	date_format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	KEY="01234567";
-    	format=new DecimalFormat("0.0000",DecimalFormatSymbols.getInstance(Locale.US)); 
+    	format=new DecimalFormat("0.0000",DecimalFormatSymbols.getInstance(Locale.US));
     	
         try {
             URI uri=Biene.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -382,6 +380,8 @@ Utils
     				mapNodes(node.getNodeName(),node.getChildNodes(),result);
     			} else if(node.getNodeType()==Node.TEXT_NODE) {
     				result.put(node_name,node.getTextContent().trim());
+    			} else if(node.getNodeType()==Node.CDATA_SECTION_NODE) {
+    				result.put(node_name,node.getNodeValue());
     			}
     		}
     		return result;
@@ -417,7 +417,7 @@ Utils
 	public static void writeLog(String log) {
 		MultipartEntityBuilder builder=MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-		builder.addPart("message",new StringBody("("+date_format.format(calendar.getTime())+") "+log,ContentType.MULTIPART_FORM_DATA));
+		builder.addPart("message",new StringBody("("+date_format.format(Calendar.getInstance().getTime())+") "+log,ContentType.MULTIPART_FORM_DATA));
 		builder.addPart("action",new StringBody("log",ContentType.MULTIPART_FORM_DATA));
 		
 		new PostSimpleSync(Config.data.http_string(),builder.build()) {
@@ -471,6 +471,8 @@ Utils
 			//p_tpl
 			line.append(delimiter);
 			//p_manufacturer
+			line.append(delimiter);
+			//p_man
 			line.append(delimiter);
 			//p_fsk18
 			line.append(result.getInt("p_web")==40?"1":"0");
@@ -528,6 +530,7 @@ Utils
 			line.append(delimiter);
 	        //p_image.2
 			line.append(delimiter);
+			//p_image
 	        String image_name=result.getString("c076");
 	        if(image_name!=null&&image_name.length()>0) {
 	        	if(image_name.toLowerCase().contains(".jpg")) {
