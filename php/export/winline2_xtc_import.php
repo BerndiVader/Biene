@@ -46,6 +46,23 @@ class Wl2Import extends xtcImport
     
         return $current['ID']??null;
     }
+
+    private function addCatToTree(string $catTree,int $catID)
+    {
+        $keys=explode("']['",trim($catTree,"[]'"));
+        $current=&$this->CatTree;
+
+        foreach($keys as $key)
+        {
+            if(!isset($current[$key]))
+            {
+                $current[$key]=[];
+            }
+            $current=&$current[$key];
+        }
+
+        $current['ID']=$catID;
+    }
     
     function insertCategory(&$dataArray,$pID,$mode='insert') 
     {
@@ -104,37 +121,33 @@ class Wl2Import extends xtcImport
 
                         xtc_db_perform(TABLE_CATEGORIES,$categorie_data);
                         $cat_id=xtc_db_insert_id();
-
                         $this->counter['cat_new']++;
 
-                        $code = '$this->CatTree'.$parTree.'[\''.xtc_db_input($cat[$i]).'\'][\'ID\']='.$cat_id.';';
-                        eval ($code);
+                        $this->addCatToTree($parTree.'[\''.xtc_db_input($cat[$i]).'\']',$cat_id);
+                        $parent=$cat_id;
 
-                        $parent = $cat_id;
-                        for ($i_insert = 0; $i_insert < $this->sizeof_languages; $i_insert ++) {
-                            $categorie_data = array (
-                                'language_id' => $this->languages[$i_insert]['id'],
-                                'categories_id' => $cat_id,
-                                'categories_name' => $cat[$i]
-                            );
-                            xtc_db_perform(TABLE_CATEGORIES_DESCRIPTION, $categorie_data);
+                        for ($i_insert=0;$i_insert<$this->sizeof_languages;$i_insert++)
+                        {
+                            $categorie_data=[
+                                'language_id'=>$this->languages[$i_insert]['id'],
+                                'categories_id'=>$cat_id,
+                                'categories_name'=>$cat[$i]
+                            ];
+                            xtc_db_perform(TABLE_CATEGORIES_DESCRIPTION,$categorie_data);
                         }
-                    } else {
+                    } 
+                    else 
+                    {
                         $this->counter['cat_touched']++;
-                        $cData = xtc_db_fetch_array($cat_query);
-                        $cat_id = $cData['categories_id'];
-                        $code = '$this->CatTree'.$parTree.'[\''.xtc_db_input($cat[$i]).'\'][\'ID\']='.$cat_id.';';
-                        //debug
-                        if ($this->debug) {echo '<pre>FIFTH $CODE: ' . $code . '</pre>';}
+                        $cData=xtc_db_fetch_array($cat_query);
+                        $cat_id=$cData['categories_id'];
 
-                        eval ($code);
-                        //debug
-                        if ($this->debug) echo '<pre>SECOND $CAT_ID: '.$cat_id.'</pre><hr />';
+                        $this->addCatToTree($parTree.'[\''.xtc_db_input($cat[$i]).'\']',$cat_id);
                     }
                 }
-                $parTree = $catTree;
+                $parTree=$catTree;
             }
-            $this->insertPtoCconnection($pID, $cat_id);
+            $this->insertPtoCconnection($pID,$cat_id);
         }
     }
 
@@ -142,6 +155,19 @@ class Wl2Import extends xtcImport
 
 class Wl2Export extends xtcExport
 {
+
+    public function __construct($filename)
+    {
+        parent::__construct($filename);
+        if(empty($this->man))
+        {
+            $this->man=[
+                '0'=>'Dummy'
+            ];
+        }
+    }
+
+    
 
 }
 
