@@ -1,5 +1,6 @@
 package com.gmail.berndivader.biene;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -33,6 +34,9 @@ import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.rtf.RTFEditorKit;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -549,18 +553,20 @@ Utils
 			line.append(delimiter);
 	        //p_desc.de
 	        try {
-	        	String temp=result.getString("c080");
-	        	if(temp==null) temp="";
-				if (rtf_reader.isValid(temp)) {
-					rtf_reader.parse(temp);
+	        	if((tmp=result.getString("c080"))==null) tmp="";
+	        	line.append(rtf2html(tmp));
+	        	/*
+				if (rtf_reader.isValid(tmp)) {
+					rtf_reader.parse(tmp);
 					line.append(rtf_html.format(rtf_reader.root,false));
 				} else {
-					line.append(temp);
+					line.append(tmp);
 				}
+				*/
 			} catch (Exception e) {
 	    		Logger.$(e,false,true);
 			}
-			line.append(delimiter);
+	        line.append(delimiter);
 	        //p_shortdesc.de
 			if((tmp=result.getString("c073"))==null) tmp="";
 			line.append(tmp);
@@ -616,6 +622,20 @@ Utils
 	public static void deleteCSVFile(String file_name) {
 		File file=new File(file_name);
 		if(file.exists()) file.delete();
+	}
+	
+	private static String rtf2html(String desc) throws IOException, BadLocationException {
+    	RTFEditorKit rtfKit=new RTFEditorKit();
+    	javax.swing.text.Document doc=rtfKit.createDefaultDocument();
+    	try(InputStream stream=new ByteArrayInputStream(desc.getBytes())) {
+    		rtfKit.read(stream,doc,0);
+    	}
+    	HTMLEditorKit htmlKit=new HTMLEditorKit();
+        try(StringWriter writer=new StringWriter()) {
+            htmlKit.write(writer,doc,0,doc.getLength());
+            desc=writer.toString().replaceAll("\\s+"," ").trim();
+        }
+		return desc;
 	}
 	
 	public static void copyPictures(List<File>files) {
