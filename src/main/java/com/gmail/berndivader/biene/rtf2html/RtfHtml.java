@@ -156,7 +156,7 @@ RtfHtml
 			previousState=(RtfState)state.clone();
 			closeTag("span");
 
-			output+="<span style=\""+span+"\">"+txt;
+			output+="<span style='"+span+"'>"+txt;
 			openedTags.put("span",true);
 		} else {
 			output+=txt;
