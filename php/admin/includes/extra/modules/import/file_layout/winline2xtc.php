@@ -3,6 +3,7 @@ defined('_VALID_XTC') or die('Direct Access to this location is not allowed.');
 
 if(defined("WL2XTC")&&WL2XTC===true)
 {
+
     $handler=fopen($this->ImportDir.$this->filename,'r');
     if($handler!==false)
     {
@@ -16,7 +17,7 @@ if(defined("WL2XTC")&&WL2XTC===true)
             {
                 if(!array_key_exists($key,$wl2_layout))
                 {
-                    $wl2_layout[$key]=$value;
+                    $wl2_layout[$key]='';
                 }
             }
             $file_layout=$wl2_layout;

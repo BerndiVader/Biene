@@ -318,7 +318,7 @@ function ProductExport(string $action)
       $message="OK";
     }
 
-    if(isset($export[1])&&$export[1][0]!='')
+    if(isset($export[1][0])&&$export[1][0]!='')
     {
       $code=Codes::FAILED;
       for($i=0;$i<count($export[1]);$i++) 
