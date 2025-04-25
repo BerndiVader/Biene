@@ -565,6 +565,7 @@ Utils
 				*/
 			} catch (Exception e) {
 	    		Logger.$(e,false,true);
+	    		line.append("");
 			}
 	        line.append(delimiter);
 	        //p_shortdesc.de

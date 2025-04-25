@@ -3,6 +3,7 @@ defined('_VALID_XTC') or die('Direct Access to this location is not allowed.');
 
 if(defined("WL2XTC")&&WL2XTC===true&&$this->FileSheme["action"]=="Y")
 {
+
     switch($dataArray["action"])
     {
         case "insert":

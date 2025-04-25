@@ -12,6 +12,38 @@ class Wl2Import extends xtcImport
         parent::__construct($filename);
     }
 
+    private function updateProducts2CatTable(int $pID,string $catTree)
+    {
+        $p_cats=explode("']['",trim($catTree,"[]'"));
+
+        $query=
+        "   SELECT cat_desc.categories_name,cat_desc.categories_id FROM categories AS cat
+            JOIN categories_description AS cat_desc
+            ON cat_desc.categories_id=cat.categories_id
+            JOIN products_to_categories AS prod_cat
+            ON prod_cat.categories_id=cat.categories_id
+            WHERE prod_cat.products_id={$pID};
+        ";
+
+        $request=xtc_db_query($query);
+        if($request)
+        {
+            while($data=xtc_db_fetch_array($request))
+            {
+                if(isset($data['categories_name']))
+                {
+                    if(!in_array($data['categories_name'],$p_cats))
+                    {
+                        $cID=$data['categories_id'];
+                        xtc_db_query("  DELETE FROM products_to_categories
+                                        WHERE products_id={$pID} AND categories_id={$cID};");
+                    }
+                }
+            }
+        }
+
+    }
+
     function get_mfn() 
     {
         $mfn_array=[];
@@ -76,6 +108,8 @@ class Wl2Import extends xtcImport
                 $catTree.='[\''.xtc_db_input($cat[$i]).'\']';
             }
         }
+
+        $dataCatTree=$catTree;
 
         $ID=$this->getStoredCatID($this->CatTree,$catTree);
 
@@ -149,6 +183,8 @@ class Wl2Import extends xtcImport
             }
             $this->insertPtoCconnection($pID,$cat_id);
         }
+
+        $this->updateProducts2CatTable($pID,$dataCatTree);
     }
 
 }
@@ -161,8 +197,11 @@ class Wl2Export extends xtcExport
         parent::__construct($filename);
         if(empty($this->man))
         {
+            /*
+                This avoids php exception if manufacturers table is empty.
+            */
             $this->man=[
-                '0'=>'Dummy'
+                '-1'=>'Placeholder'
             ];
         }
     }
