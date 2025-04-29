@@ -625,18 +625,21 @@ Utils
 		if(file.exists()) file.delete();
 	}
 	
-	private static String rtf2html(String desc) throws IOException, BadLocationException {
+	private static String rtf2html(String desc) {
     	RTFEditorKit rtfKit=new RTFEditorKit();
     	javax.swing.text.Document doc=rtfKit.createDefaultDocument();
     	try(InputStream stream=new ByteArrayInputStream(desc.getBytes())) {
     		rtfKit.read(stream,doc,0);
-    	}
-    	HTMLEditorKit htmlKit=new HTMLEditorKit();
-        try(StringWriter writer=new StringWriter()) {
-            htmlKit.write(writer,doc,0,doc.getLength());
-            desc=writer.toString().replaceAll("\\s+"," ").trim();
-        }
-		return desc;
+	    	HTMLEditorKit htmlKit=new HTMLEditorKit();
+	        try(StringWriter writer=new StringWriter()) {
+	            htmlKit.write(writer,doc,0,doc.getLength());
+	            desc=writer.toString().replaceAll("\\s+"," ").trim();
+			}
+			return desc;
+		} catch (IOException | BadLocationException e) {
+			Logger.$(e);
+		}
+    	return "";
 	}
 	
 	public static void copyPictures(List<File>files) {
