@@ -2,6 +2,7 @@ package com.gmail.berndivader.biene;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,6 +38,8 @@ Helper
 	
 	public static final ThreadPoolExecutor executor;
     public static final ScheduledExecutorService scheduler;
+    
+    public static LinkedHashMap<String,Object>catTree;
 	
 	static {
 		executor=(ThreadPoolExecutor)Executors.newCachedThreadPool();
@@ -46,6 +49,8 @@ Helper
 		
 		client=initHttpClient();
 		client.start();
+		
+		catTree=new LinkedHashMap<String,Object>();
 	}
 	
 	private static CloseableHttpAsyncClient initHttpClient() {
@@ -141,6 +146,10 @@ Helper
 		StringEntity entity=new StringEntity(content,ContentType.TEXT_XML);
 		error.setEntity(entity);
 		return error;
+	}
+	
+	public static void refreshCatTree() {
+		
 	}
 		
 	public static void close() {

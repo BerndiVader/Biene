@@ -27,16 +27,14 @@ QueryBatchTask
 	private static final String SCHEDULED_INFO="-- Scheduled Shop Update Task %s...";
 	private static final String END_INFO="-- Beende Shop Update Task %s.";
 	
-	private RtfReader rtf_reader;
-	private RtfHtml rtf_html;
+	private RtfReader rtfReader;
+	private RtfHtml rtfHtml;
 	
 	private boolean withImageUpdate;
 	
 	public UpdateShopTask(boolean withImageUpdate) {
 		super(Config.data.winline_query());
 		
-		rtf_reader=new RtfReader();
-		rtf_html=new RtfHtml();
 		this.withImageUpdate=withImageUpdate;
 		
 		this.add();
@@ -60,12 +58,15 @@ QueryBatchTask
 			StringBuilder csv_string=new StringBuilder(Config.data.csv_header().concat("\n"));
 			int change_counter=0;
 			
+			rtfReader=new RtfReader();
+			rtfHtml=new RtfHtml();
+			
 			try(PreparedStatement statement=conn.prepareStatement(Config.data.updates_query(),ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY)) {
 				try(ResultSet changes=statement.executeQuery()) {
 					if(changes.first()) {
 						do {
 							validateImage(changes.getString("c076"));
-							csv_string.append(Utils.makeCSVLine(Action.UPDATE,changes,rtf_reader,rtf_html));
+							csv_string.append(Utils.makeCSVLine(Action.UPDATE,changes,rtfReader,rtfHtml));
 						} while(changes.next());
 						changes.last();
 						change_counter+=changes.getRow();
@@ -82,7 +83,7 @@ QueryBatchTask
 					if(inserts.first()) {
 						do {
 							validateImage(inserts.getString("c076"));
-							csv_string.append(Utils.makeCSVLine(Action.INSERT,inserts,rtf_reader,rtf_html));
+							csv_string.append(Utils.makeCSVLine(Action.INSERT,inserts,rtfReader,rtfHtml));
 						} while(inserts.next());
 						inserts.last();
 						change_counter+=inserts.getRow();
@@ -98,7 +99,7 @@ QueryBatchTask
 				try(ResultSet deletes=statement.executeQuery()) {
 					if(deletes.first()) {
 						do {
-							csv_string.append(Utils.makeCSVLine(Action.DELETE,deletes,rtf_reader,rtf_html));
+							csv_string.append(Utils.makeCSVLine(Action.DELETE,deletes,rtfReader,rtfHtml));
 						} while(deletes.next());
 						deletes.last();
 						change_counter+=deletes.getRow();

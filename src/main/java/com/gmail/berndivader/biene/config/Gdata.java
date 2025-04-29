@@ -35,6 +35,8 @@ Cloneable
 	private String sql_deletes;
 	@DefaultValue("ZTZLb/cazfeumEAW6aB89OhOzV9dBfsJunGSnrwBY+ZZ4D6sparlRhgxoQMuvUlH3WKavAV+e4t9g63D8oXBw/stdJCYjW5pkrFe+lRuDxv0my8T0pJqfVyVZYAwhaZzObYzTIjqj6L8i6PUSAhDQJffu8kIQ7RwXOru9eUAsRj2b5xtyFTWXFclrOvQpKIGkjOj6YWxbZll0vvpyyujmQ==")
 	private String sql_verify;
+	@DefaultValue("UNGE")
+	private String meso_client;
 	@DefaultValue("2015")
 	private String meso_year;
 	@DefaultValue("https://URL.TO.MODIFIED/shop/export/winline2_xtc.php")
@@ -187,6 +189,13 @@ Cloneable
 			String[]line=lines[i1].split(",");
 			this.katalogs.put(Integer.parseInt(line[0]),new SimpleEntry<>(line[1],line[2]));
 		}
+	}
+	
+	public String meso_client() {
+		return meso_client;
+	}
+	public void meso_client(String meso_client) {
+		this.meso_client=meso_client;
 	}
 	
 	public int meso_year() {
