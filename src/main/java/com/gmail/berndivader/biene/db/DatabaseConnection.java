@@ -30,14 +30,8 @@ DatabaseConnection
 		}
 	}
 	
-	public static Connection getNewConnection() {
-		Connection connection=null;
-		try {
-			connection=(DriverManager.getConnection(Config.data.connection_string(),Config.data.username(),Config.data.password()));
-		} catch (SQLException e) {
-			Logger.$(e);
-		}
-		return connection;
+	public static Connection getNewConnection() throws SQLException {
+		return DriverManager.getConnection(Config.data.connection_string(),Config.data.username(),Config.data.password());
 	}
 	
 	public static boolean testConnection() {
