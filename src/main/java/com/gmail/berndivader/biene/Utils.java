@@ -24,11 +24,11 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -453,7 +453,8 @@ Utils
 		new GetInfoSync();
 	}
 	
-	public static String makeCSVLine(Action action_enum,ResultSet result,RtfReader rtf_reader,RtfHtml rtf_html) {
+	@SuppressWarnings("unchecked")
+	public static String makeCSVLine(Action action_enum,ResultSet result,RtfReader rtf_reader,RtfHtml rtf_html,LinkedHashMap<String,Object>catTree) {
 		
 		String tmp;
 		String delimiter="|";
@@ -497,8 +498,9 @@ Utils
 	        } else {
 	        	SteuercodeQuery query=new SteuercodeQuery(tax);
 	        	try {
-	        		query.latch.await(query.max_seconds,TimeUnit.SECONDS);
-					tax=query.code;
+	        		if(query.latch.await(query.max_seconds,TimeUnit.SECONDS)) {
+						tax=query.code;
+	        		}
 				} catch (InterruptedException e) {
 					Logger.$(e,false,true);
 					tax=1;
@@ -582,13 +584,26 @@ Utils
 			line.append(delimiter);
 	        //p_url.de
 			line.append(delimiter);
-	        int id=result.getInt("p_web");
-	        SimpleEntry<String,String>entry=Config.data.katalogs(id);
-	        //p_cat.0
-        	line.append(entry.getValue());
-        	line.append(delimiter);
-	        //p_cat.1
-        	line.append(entry.getKey());
+	        //p_cat.0-4
+			String[]tree=Arrays.stream(result.getString("p_catalog").split("-"))
+				.filter(entry->!entry.equals("00000"))
+				.toArray(String[]::new);
+			long catCount=Arrays.stream(Config.data.csv_header().split("\\|"))
+					.filter(field->field.startsWith("p_cat"))
+					.count();
+			if(catTree!=null&&!catTree.isEmpty()) {
+				for(int a=0;a<catCount;a++) {
+					if(a<tree.length&&catTree.containsKey(tree[a])) {
+						catTree=(LinkedHashMap<String,Object>)catTree.get(tree[a]);
+						LinkedHashMap<String,String>info=(LinkedHashMap<String,String>)catTree.get("INFO");
+						line.append(info.get("NAME"));
+					}
+					line.append(delimiter);
+				}
+        	} else {
+            	line.append("1TEMP");
+            	line.append(delimiter);
+        	}
 		} catch (SQLException ex) {
     		Logger.$(ex.getMessage(),false,true);
     		Logger.$(ex);

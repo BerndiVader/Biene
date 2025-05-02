@@ -4,6 +4,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.LinkedHashMap;
 import java.util.concurrent.TimeUnit;
 
 import com.gmail.berndivader.biene.config.Config;
@@ -50,6 +51,12 @@ QueryBatchTask
 		Logger.$(String.format(START_INFO,this.uuid.toString()),false,true);
 		int mesoYear=Config.data.meso_year();
 		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
+		
+		CatalogTree catalogTree=new CatalogTree();
+		LinkedHashMap<String,Object>catTree=null;
+		if(catalogTree.latch.await(catalogTree.max_seconds,TimeUnit.SECONDS)) {
+			catTree=catalogTree.tree;
+		}
 
 		try(Connection conn=DatabaseConnection.getNewConnection()) {
 			conn.prepareStatement(this.query).execute();
@@ -66,7 +73,7 @@ QueryBatchTask
 					if(changes.first()) {
 						do {
 							validateImage(changes.getString("c076"));
-							csv_string.append(Utils.makeCSVLine(Action.UPDATE,changes,rtfReader,rtfHtml));
+							csv_string.append(Utils.makeCSVLine(Action.UPDATE,changes,rtfReader,rtfHtml,catTree));
 						} while(changes.next());
 						changes.last();
 						change_counter+=changes.getRow();
@@ -83,7 +90,7 @@ QueryBatchTask
 					if(inserts.first()) {
 						do {
 							validateImage(inserts.getString("c076"));
-							csv_string.append(Utils.makeCSVLine(Action.INSERT,inserts,rtfReader,rtfHtml));
+							csv_string.append(Utils.makeCSVLine(Action.INSERT,inserts,rtfReader,rtfHtml,catTree));
 						} while(inserts.next());
 						inserts.last();
 						change_counter+=inserts.getRow();
@@ -99,7 +106,7 @@ QueryBatchTask
 				try(ResultSet deletes=statement.executeQuery()) {
 					if(deletes.first()) {
 						do {
-							csv_string.append(Utils.makeCSVLine(Action.DELETE,deletes,rtfReader,rtfHtml));
+							csv_string.append(Utils.makeCSVLine(Action.DELETE,deletes,rtfReader,rtfHtml,catTree));
 						} while(deletes.next());
 						deletes.last();
 						change_counter+=deletes.getRow();

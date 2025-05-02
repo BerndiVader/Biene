@@ -14,7 +14,7 @@ public class CatalogTree extends SimpleResultQuery {
 	public LinkedHashMap<String,Object>tree;
 
 	public CatalogTree() {
-		super(String.format(QUERY,Config.data.meso_client(),Config.data.meso_year()-635),Tasks.UNKOWN,5l);
+		super(String.format(QUERY,Config.data.meso_client(),(Config.data.meso_year()-1900)*12),Tasks.UNKOWN,5l);
 	}
 
 	@Override
