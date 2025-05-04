@@ -49,8 +49,11 @@ QueryBatchTask
 	@Override
 	public Boolean call() throws Exception {
 		Logger.$(String.format(START_INFO,this.uuid.toString()),false,true);
-		int mesoYear=Config.data.meso_year();
-		query=query.replace("$mesoyear$",Integer.toString((mesoYear-1900)*12));
+		int mesoYear=(Config.data.meso_year()-1900)*12;
+		
+		query=query
+				.replaceAll("\\{\\$mesoyear\\}",Integer.toString(mesoYear))
+				.replaceAll("\\{\\$mesocomp\\}",Config.data.meso_client());
 		
 		CatalogTree catalogTree=new CatalogTree();
 		LinkedHashMap<String,Object>catTree=null;

@@ -30,6 +30,7 @@ import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.awt.Label;
 import java.awt.Font;
 import java.awt.TextArea;
@@ -81,7 +82,6 @@ public class Settings extends JFrame {
 	private TextArea sql_find_changed;
 	private TextArea sql_find_inserts;
 	private TextArea sql_find_deletes;
-	private TextArea katalog;
 	private TextArea sql_update_local;
 	private Checkbox autoupdate;
 	private TextField upd_inverval_value;
@@ -90,8 +90,10 @@ public class Settings extends JFrame {
 	private PopupMenu bilderPopup;
 	private JTextField client_info;
 	private JComboBox<String>client_select;
+	private String client_selected;
 	
 	private int client_selected_index=0;
+	private JButton btnReload;
 	private JButton btnSelect;
 
 
@@ -170,40 +172,88 @@ public class Settings extends JFrame {
 		tabbedPane.getInputMap().put(KeyStroke.getKeyStroke("RIGHT"),"none");
 		contentPane.add(tabbedPane, gbc_tabbedPane);
 		
-		sql_wl_zu_xtc = new TextArea();
-		tabbedPane.addTab("WL zu XTC", null, sql_wl_zu_xtc, null);
-		sql_wl_zu_xtc.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		sql_wl_zu_xtc.setText(Config.data.winline_query());
 		
-		sql_find_changed = new TextArea();
-		sql_find_changed.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		tabbedPane.addTab("Updates", null, sql_find_changed, null);
-		sql_find_changed.setText(Config.data.updates_query());
+		Panel misc = new Panel();
+		misc.setBackground(new Color(238, 238, 238));
+		tabbedPane.addTab("Config", null, misc, null);
 		
-		sql_find_inserts = new TextArea();
-		sql_find_inserts.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		tabbedPane.addTab("Inserts", null, sql_find_inserts, null);
-		sql_find_inserts.setText(Config.data.inserts_query());
+		client_select = new JComboBox<String>();
+		client_select.setFont(UIManager.getFont("Button.font"));
 		
-		sql_find_deletes = new TextArea();
-		sql_find_deletes.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		tabbedPane.addTab("Deletes", null, sql_find_deletes, null);
-		sql_find_deletes.setText(Config.data.deletes_query());
+		JLabel client_label = new JLabel("Klient:");
+		client_label.setHorizontalAlignment(SwingConstants.RIGHT);
 		
-		sql_update_local = new TextArea();
-		sql_update_local.setText((String) null);
-		sql_update_local.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		tabbedPane.addTab("Verify Update", null, sql_update_local, null);
-		sql_find_deletes.setText(Config.data.verify_query());
+		client_info = new JTextField();
+		client_info.setEditable(false);
+		client_info.setColumns(10);
 		
-		katalog = new TextArea();
-		katalog.setFont(new Font("Monospaced", Font.PLAIN, 11));
-		tabbedPane.addTab("Katalog", null, katalog, null);
-		katalog.setText(Config.data.katalog());
+		btnReload = new JButton("refresh");
+		btnReload.addActionListener(e->update_clients());
+		
+		btnSelect = new JButton("select");
+		
+		GroupLayout gl_misc = new GroupLayout(misc);
+		gl_misc.setHorizontalGroup(
+			gl_misc.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_misc.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(client_label, GroupLayout.PREFERRED_SIZE, 61, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(client_select, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_misc.createParallelGroup(Alignment.LEADING)
+						.addGroup(Alignment.TRAILING, gl_misc.createSequentialGroup()
+							.addComponent(btnReload)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnSelect, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE))
+						.addComponent(client_info, GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
+					.addContainerGap())
+		);
+		gl_misc.setVerticalGroup(
+			gl_misc.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_misc.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
+						.addComponent(client_info, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+						.addComponent(client_label)
+						.addComponent(client_select, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnSelect)
+						.addComponent(btnReload))
+					.addContainerGap(406, Short.MAX_VALUE))
+		);
+		misc.setLayout(gl_misc);
 		
 		bilder = new List();
 		bilder.setFont(new Font("Monospaced", Font.PLAIN, 11));
 		tabbedPane.addTab("Bilder", null, bilder, null);
+		
+		bilderPopup=new PopupMenu();
+		bilderPopup.add(new MenuItem("Generiere Bilder am Server"));
+		bilderPopup.add(new MenuItem("Entferne ausgewähltes Bild"));
+		bilderPopup.add(new MenuItem("Verzeichnis aktualisieren"));
+		
+		bilderPopup.getItem(0).setActionCommand("update");
+		bilderPopup.getItem(1).setActionCommand("delete");
+		bilderPopup.getItem(2).setActionCommand("refresh");
+		
+		
+		bilderPopup.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switch(e.getActionCommand()) {
+				case "update":
+					new UpdatePicturesTask();
+					break;
+				case "delete":
+					Utils.deleteSelectedPictures(bilder.getSelectedItems());
+					break;
+				case "refresh":
+					break;
+				}
+			}
+		});
 		
 		bilder.setDropTarget(new DropTarget() {
 			private static final long serialVersionUID = 1L;
@@ -255,32 +305,6 @@ public class Settings extends JFrame {
 			
 		});
 		
-		bilderPopup=new PopupMenu();
-		bilderPopup.add(new MenuItem("Generiere Bilder am Server"));
-		bilderPopup.add(new MenuItem("Entferne ausgewähltes Bild"));
-		bilderPopup.add(new MenuItem("Verzeichnis aktualisieren"));
-		
-		bilderPopup.getItem(0).setActionCommand("update");
-		bilderPopup.getItem(1).setActionCommand("delete");
-		bilderPopup.getItem(2).setActionCommand("refresh");
-		
-		
-		bilderPopup.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				switch(e.getActionCommand()) {
-				case "update":
-					new UpdatePicturesTask();
-					break;
-				case "delete":
-					Utils.deleteSelectedPictures(bilder.getSelectedItems());
-					break;
-				case "refresh":
-					break;
-				}
-			}
-		});
-		
 		bilder.addMouseListener(new MouseListener() {
 			
 			@Override
@@ -305,58 +329,31 @@ public class Settings extends JFrame {
 		
 		bilder.add(bilderPopup);
 		
+		sql_wl_zu_xtc = new TextArea();
+		tabbedPane.addTab("WL zu XTC", null, sql_wl_zu_xtc, null);
+		sql_wl_zu_xtc.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		sql_wl_zu_xtc.setText(Config.data.winline_query());
 		
-		Panel misc = new Panel();
-		misc.setBackground(new Color(238, 238, 238));
-		tabbedPane.addTab("Misc", null, misc, null);
+		sql_find_changed = new TextArea();
+		sql_find_changed.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		tabbedPane.addTab("Updates", null, sql_find_changed, null);
+		sql_find_changed.setText(Config.data.updates_query());
 		
-		client_select = new JComboBox<String>();
-		client_select.setFont(UIManager.getFont("Button.font"));
-				
-		JLabel client_label = new JLabel("Mandant:");
-		client_label.setHorizontalAlignment(SwingConstants.RIGHT);
+		sql_find_inserts = new TextArea();
+		sql_find_inserts.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		tabbedPane.addTab("Inserts", null, sql_find_inserts, null);
+		sql_find_inserts.setText(Config.data.inserts_query());
 		
-		client_info = new JTextField();
-		client_info.setEditable(false);
-		client_info.setColumns(10);
+		sql_find_deletes = new TextArea();
+		sql_find_deletes.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		tabbedPane.addTab("Deletes", null, sql_find_deletes, null);
+		sql_find_deletes.setText(Config.data.deletes_query());
 		
-		JButton btnReload = new JButton("refresh");
-		btnReload.addActionListener(e->update_clients());
-		
-		btnSelect = new JButton("select");
-		
-		GroupLayout gl_misc = new GroupLayout(misc);
-		gl_misc.setHorizontalGroup(
-			gl_misc.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_misc.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(client_label, GroupLayout.PREFERRED_SIZE, 61, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(client_select, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_misc.createParallelGroup(Alignment.LEADING)
-						.addGroup(Alignment.TRAILING, gl_misc.createSequentialGroup()
-							.addComponent(btnReload)
-							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(btnSelect, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE))
-						.addComponent(client_info, GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
-					.addContainerGap())
-		);
-		gl_misc.setVerticalGroup(
-			gl_misc.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_misc.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
-						.addComponent(client_info, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-						.addComponent(client_label)
-						.addComponent(client_select, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(ComponentPlacement.RELATED)
-					.addGroup(gl_misc.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnSelect)
-						.addComponent(btnReload))
-					.addContainerGap(406, Short.MAX_VALUE))
-		);
-		misc.setLayout(gl_misc);
+		sql_update_local = new TextArea();
+		sql_update_local.setText((String) null);
+		sql_update_local.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		tabbedPane.addTab("Verify Update", null, sql_update_local, null);
+		sql_find_deletes.setText(Config.data.verify_query());
 		
 		update_clients();
 		
@@ -497,10 +494,11 @@ public class Settings extends JFrame {
 	}
 	
 	private void update_clients() {
+		
 		String query="SELECT c000 AS name,c001 AS client,c003 AS city,c004 AS street,c006 AS plz,mesocomp,mesoyear,mesoprim FROM dbo.t001;";
 		int index=client_selected_index;
 		
-		new SimpleResultQuery(query,Tasks.DB_RESULT_REQUEST,10l) {
+		SimpleResultQuery simple=new SimpleResultQuery(query,Tasks.DB_RESULT_REQUEST,10l) {
 			
 			@Override
 			public void failed(Void error) {
@@ -528,6 +526,12 @@ public class Settings extends JFrame {
 			
 		};
 		
+		try {
+			simple.latch.await(simple.max_seconds,TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			Logger.$(e);
+		}
+
 	}
 	
 	private void update_pictures() {
@@ -551,7 +555,6 @@ public class Settings extends JFrame {
 		Config.data.stapelpreise_query("");
 		Config.data.deletes_query(sql_find_deletes.getText());
 		Config.data.inserts_query(sql_find_inserts.getText());
-		Config.data.katalogs(katalog.getText());
 		Config.data.auto_update(autoupdate.getState());
 		Config.data.update_interval(this.upd_inverval_value.getText());
 	}
@@ -567,7 +570,6 @@ public class Settings extends JFrame {
 		sql_find_inserts.setText(Config.data.inserts_query());
 		sql_find_deletes.setText(Config.data.deletes_query());
 		sql_update_local.setText(Config.data.verify_query());
-		katalog.setText(Config.data.katalog());
 		autoupdate.setState(Config.data.auto_update());
 		upd_inverval_value.setText(Integer.toString(Config.data.update_interval()));
 		update_pictures();
