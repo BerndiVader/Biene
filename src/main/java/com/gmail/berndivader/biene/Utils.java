@@ -64,6 +64,7 @@ import com.gmail.berndivader.biene.enums.Action;
 import com.gmail.berndivader.biene.http.get.GetInfoSync;
 import com.gmail.berndivader.biene.http.post.PostSimpleSync;
 import com.gmail.berndivader.biene.rtf2html.RtfHtml;
+import com.gmail.berndivader.biene.rtf2html.RtfParseException;
 import com.gmail.berndivader.biene.rtf2html.RtfReader;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -506,7 +507,6 @@ Utils
 					tax=1;
 				}
 	        }
-	        
 	        line.append(Integer.toString(tax));
 			line.append(delimiter);
 	        //p_status
@@ -554,21 +554,8 @@ Utils
 			line.append(tmp);
 			line.append(delimiter);
 	        //p_desc.de
-	        try {
-	        	if((tmp=result.getString("c080"))==null) tmp="";
-	        	line.append(rtf2html(tmp));
-	        	/*
-				if (rtf_reader.isValid(tmp)) {
-					rtf_reader.parse(tmp);
-					line.append(rtf_html.format(rtf_reader.root,false));
-				} else {
-					line.append(tmp);
-				}
-				*/
-			} catch (Exception e) {
-	    		Logger.$(e,false,true);
-	    		line.append("");
-			}
+        	if((tmp=result.getString("c080"))==null) tmp="";
+        	line.append(rtf2html(tmp,true));
 	        line.append(delimiter);
 	        //p_shortdesc.de
 			if((tmp=result.getString("c073"))==null) tmp="";
@@ -640,21 +627,36 @@ Utils
 		if(file.exists()) file.delete();
 	}
 	
-	private static String rtf2html(String desc) {
-    	RTFEditorKit rtfKit=new RTFEditorKit();
-    	javax.swing.text.Document doc=rtfKit.createDefaultDocument();
-    	try(InputStream stream=new ByteArrayInputStream(desc.getBytes())) {
-    		rtfKit.read(stream,doc,0);
-	    	HTMLEditorKit htmlKit=new HTMLEditorKit();
-	        try(StringWriter writer=new StringWriter()) {
-	            htmlKit.write(writer,doc,0,doc.getLength());
-	            desc=writer.toString().replaceAll("\\s+"," ").trim();
+	private static String rtf2html(String desc,boolean new_style) {
+		if(new_style) {
+	    	RTFEditorKit rtfKit=new RTFEditorKit();
+	    	javax.swing.text.Document doc=rtfKit.createDefaultDocument();
+	    	try(InputStream stream=new ByteArrayInputStream(desc.getBytes())) {
+	    		rtfKit.read(stream,doc,0);
+		    	HTMLEditorKit htmlKit=new HTMLEditorKit();
+		        try(StringWriter writer=new StringWriter()) {
+		            htmlKit.write(writer,doc,0,doc.getLength());
+		            desc=writer.toString().replaceAll("\\s+"," ").trim();
+				}
+				return desc;
+			} catch (IOException | BadLocationException e) {
+				Logger.$(e);
 			}
-			return desc;
-		} catch (IOException | BadLocationException e) {
-			Logger.$(e);
+		} else {
+			RtfReader rtf_reader=new RtfReader();
+			RtfHtml rtf_html=new RtfHtml();
+			if (rtf_reader.isValid(desc)) {
+				try {
+					rtf_reader.parse(desc);
+					return rtf_html.format(rtf_reader.root,false);
+				} catch (RtfParseException e) {
+					Logger.$(e);
+				}
+			} else {
+				return desc;
+			}
 		}
-    	return "";
+		return desc;
 	}
 	
 	public static void copyPictures(List<File>files) {
