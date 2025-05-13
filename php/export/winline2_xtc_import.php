@@ -201,7 +201,7 @@ class Wl2Export extends xtcExport
                 This avoids php exception if manufacturers table is empty.
             */
             $this->man=[
-                '-1'=>'Placeholder'
+                '0'=>''
             ];
         }
     }

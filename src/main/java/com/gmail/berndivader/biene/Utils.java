@@ -476,9 +476,9 @@ Utils
 			line.append(delimiter);
 			//p_tpl
 			line.append(delimiter);
-			//p_manufacturer
+			//p_manufacturer (name)
 			line.append(delimiter);
-			//p_man
+			//p_man (manufacturer model #)
 			line.append(delimiter);
 			//p_fsk18
 			line.append(result.getInt("p_web")==40?"1":"0");
@@ -572,9 +572,11 @@ Utils
 	        //p_url.de
 			line.append(delimiter);
 	        //p_cat.0-4
-			String[]tree=Arrays.stream(result.getString("p_catalog").split("-"))
-				.filter(entry->!entry.equals("00000"))
-				.toArray(String[]::new);
+			String c_string=result.getString("p_catalog");
+			if(c_string==null||c_string.isEmpty()) c_string="0-0-0-0-0";
+			String[]tree=Arrays.stream(c_string.split("-"))
+						.filter(entry->!entry.equals("00000"))
+						.toArray(String[]::new);
 			long catCount=Arrays.stream(Config.data.csv_header().split("\\|"))
 					.filter(field->field.startsWith("p_cat"))
 					.count();
