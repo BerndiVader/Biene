@@ -10,6 +10,7 @@ class Wl2Import extends xtcImport
     public function __construct($filename)
     {
         parent::__construct($filename);
+        $this->seperator="|";
     }
 
     private function updateProducts2CatTable(int $pID,string $catTree)

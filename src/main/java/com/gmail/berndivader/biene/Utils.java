@@ -573,14 +573,14 @@ Utils
 			line.append(delimiter);
 	        //p_cat.0-4
 			String c_string=result.getString("p_catalog");
-			if(c_string==null||c_string.isEmpty()) c_string="0-0-0-0-0";
+			if(c_string==null||c_string.isEmpty()) c_string="00000-00000-00000-00000-00000";
 			String[]tree=Arrays.stream(c_string.split("-"))
 						.filter(entry->!entry.equals("00000"))
 						.toArray(String[]::new);
 			long catCount=Arrays.stream(Config.data.csv_header().split("\\|"))
 					.filter(field->field.startsWith("p_cat"))
 					.count();
-			if(catTree!=null&&!catTree.isEmpty()) {
+			if(catTree!=null&&!catTree.isEmpty()&&tree.length>0) {
 				for(int a=0;a<catCount;a++) {
 					if(a<tree.length&&catTree.containsKey(tree[a])) {
 						catTree=(LinkedHashMap<String,Object>)catTree.get(tree[a]);
@@ -590,8 +590,7 @@ Utils
 					line.append(delimiter);
 				}
         	} else {
-            	line.append("1TEMP");
-            	line.append(delimiter);
+            	line.append(String.format("1TEMP%s%s%s%s",delimiter,delimiter,delimiter,delimiter));
         	}
 		} catch (SQLException ex) {
     		Logger.$(ex.getMessage(),false,true);
